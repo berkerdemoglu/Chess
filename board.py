@@ -3,7 +3,6 @@ import pygame as pg
 from typing import Sequence
 
 from base import BaseDrawable
-from constants import WHITE, BLACK
 from square import Square
 
 
@@ -28,8 +27,11 @@ class Board(BaseDrawable):
 
 		return squares
 
+	def get_square(self, coordinates: str):
+		return next((square for square in self.squares if square.coordinates == coordinates), None)
+
 	def render(self, surface):
 		for square in self.squares:
 			square.render(surface)
-			label = self.font.render(square.squarename, 1, Square.SQUARE_FONT_COLOR)
+			label = self.font.render(square.coordinates, 1, Square.SQUARE_FONT_COLOR)
 			surface.blit(label, square.get_coordinates(surface))

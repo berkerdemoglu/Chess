@@ -3,7 +3,6 @@ from typing import Tuple
 import pygame as pg
 
 from base import BaseDrawable
-from constants import BLACK, WHITE
 
 
 class Square(BaseDrawable):
@@ -12,19 +11,21 @@ class Square(BaseDrawable):
 	DARK_SQUARE_COLOR = (140, 94, 67)
 	LIGHT_SQUARE_COLOR = (247, 237, 205)
 
-	SQUARE_FONT = ('monospace', 13)
+	SQUARE_FONT = ('monospace', 14)
 	SQUARE_FONT_COLOR = (32, 30, 31)
 
 	def __init__(self, color: Tuple[int, int, int], pos: Tuple[int, int]):
 		self.color = color
-		self._colorname = 'WHITE' if color == WHITE else 'BLACK'
+		self._colorname = 'LIGHT' if color == Square.LIGHT_SQUARE_COLOR else 'DARK'
 
 		self.center_x = pos[0]
 		self.center_y = pos[1]
 		self._center = pos
 
+		self.piece = None  # piece occupying the square
+
 	@property
-	def squarename(self) -> str:
+	def coordinates(self) -> str:
 		file = self._get_file_str(int(self._center[0] / Square.SQUARE_SIZE))
 		rank = self._get_rank_str(int(self._center[1] / Square.SQUARE_SIZE))
 		return file + rank
@@ -56,7 +57,7 @@ class Square(BaseDrawable):
 	def _get_rank_str(rank: int):
 		return str(8 - rank)
 
-	def get_coordinates(self, surface: pg.Surface) -> Tuple[int]:
+	def get_coordinates(self, surface: pg.Surface) -> Tuple[int, int]:
 		surface_rect = surface.get_rect()
 		x = self.center_x + surface_rect.centerx - 4*Square.SQUARE_SIZE
 		y = self.center_y + surface_rect.centery - 4*Square.SQUARE_SIZE
@@ -74,4 +75,4 @@ class Square(BaseDrawable):
 		pg.draw.rect(surface, self.color, rect)
 
 	def __str__(self):
-		return f'Color: {self._colorname}, Square: {self.squarename}'
+		return f'Color: {self._colorname}, Coordinates: {self.coordinates}, Piece: {self.piece}'

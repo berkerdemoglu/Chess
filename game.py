@@ -10,14 +10,14 @@ from board import Board
 class Game:
 
 	def __init__(self):
-		pg.font.init()
-		self.board = Board()
-
-	def start(self):
 		pg.init()
 		self.screen = pg.display.set_mode(SCREEN_PROPERTIES)
 		pg.display.set_caption(WINDOW_TITLE)
 
+		pg.font.init()
+		self.board = Board()
+
+	def start(self):
 		while True:
 			self.poll_events()
 			self.update_screen()
