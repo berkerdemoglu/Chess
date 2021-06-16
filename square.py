@@ -5,6 +5,9 @@ import pygame as pg
 from base import BaseDrawable
 
 
+pg.font.init()
+
+
 class Square(BaseDrawable):
 	"""Represents a single square on the chessboard."""
 	SQUARE_SIZE = 75
@@ -12,7 +15,8 @@ class Square(BaseDrawable):
 	DARK_SQUARE_COLOR = (140, 94, 67)
 	LIGHT_SQUARE_COLOR = (247, 237, 205)
 
-	SQUARE_FONT = ('monospace', 14)
+	SQUARE_FONT_PROPERTIES = ('monospace', 14)
+	SQUARE_FONT = pg.font.SysFont(*SQUARE_FONT_PROPERTIES)
 	SQUARE_FONT_COLOR = (32, 30, 31)
 
 	def __init__(self, color: Tuple[int, int, int], pos: Tuple[int, int], index: int):
@@ -28,7 +32,7 @@ class Square(BaseDrawable):
 
 	@property
 	def coordinates(self) -> str:
-		"""The coordinates of the square on a typical chessboard."""
+		"""The coordinates of the square on a chessboard."""
 		file = self._get_file_str(int(self._center[0] / Square.SQUARE_SIZE))
 		rank = self._get_rank_str(int(self._center[1] / Square.SQUARE_SIZE))
 		return file + rank
@@ -62,8 +66,8 @@ class Square(BaseDrawable):
 		"""Convert a given integer to a rank number on a chessboard."""
 		return str(8 - rank)
 
-	def get_coordinates(self, surface: pg.Surface) -> Tuple[int, int]:
-		"""Get the coordinates of the square on a chessboard."""
+	def get_pos(self, surface: pg.Surface) -> Tuple[int, int]:
+		"""Get the coordinates of the square on the screen."""
 		surface_rect = surface.get_rect()
 		x = self.center_x + surface_rect.centerx - 4*Square.SQUARE_SIZE
 		y = self.center_y + surface_rect.centery - 4*Square.SQUARE_SIZE
@@ -72,7 +76,7 @@ class Square(BaseDrawable):
 
 	def get_rect(self, surface: pg.Surface) -> pg.Rect:
 		"""Get the rect of the square, ready to be rendered to the screen."""
-		coordinates = self.get_coordinates(surface)
+		coordinates = self.get_pos(surface)
 
 		return pg.Rect(*coordinates, Square.SQUARE_SIZE, Square.SQUARE_SIZE)
 

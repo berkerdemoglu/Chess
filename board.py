@@ -3,19 +3,18 @@ import pygame as pg
 from typing import List
 
 from base import BaseDrawable
+from piece import BasePiece
 from square import Square
 from fen_reader import FENReader
 
 
 class Board(BaseDrawable):
-	DEFAULT_POSITION_FEN = 'rnbqkbnr/pppppppp/r5r/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+	DEFAULT_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 	
 	def __init__(self):
 		"""Initialize the chessboard."""
 		self.squares = None
-		self.pieces = list()
-
-		self.square_font = pg.font.SysFont(*Square.SQUARE_FONT)
+		self.pieces: List[BasePiece] = list()
 
 		self._create_board()
 
@@ -49,7 +48,13 @@ class Board(BaseDrawable):
 		return next((square for square in self.squares if square.coordinates == coordinates), None)
 
 	def render(self, surface):
+		# Render the squares
 		for square in self.squares:
 			square.render(surface)
-			label = self.square_font.render(square.coordinates, True, Square.SQUARE_FONT_COLOR)
-			surface.blit(label, square.get_coordinates(surface))
+
+			label = Square.SQUARE_FONT.render(square.coordinates, True, Square.SQUARE_FONT_COLOR)
+			surface.blit(label, square.get_pos(surface))
+
+		# Render the pieces
+		for piece in self.pieces:
+			piece.render(surface)
