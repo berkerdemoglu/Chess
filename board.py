@@ -1,37 +1,55 @@
 import pygame as pg
 
-from typing import Sequence
+from typing import List
 
 from base import BaseDrawable
 from square import Square
+from fen_reader import FENReader
 
 
 class Board(BaseDrawable):
+	DEFAULT_POSITION_FEN = 'rnbqkbnr/pppppppp/r5r/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 	
 	def __init__(self):
-		self.squares = Board._create_board()
+		"""Initialize the chessboard."""
+		self.squares = None
+		self.pieces = list()
 
-		self.font = pg.font.SysFont(*Square.SQUARE_FONT)
+		self.square_font = pg.font.SysFont(*Square.SQUARE_FONT)
 
-	@classmethod
-	def _create_board(cls) -> Sequence[Square]:
+		self._create_board()
+
+	def _create_board(self):
+		"""Create the chessboard."""
+		self.squares = self._setup_squares()
+		self._setup_pieces()
+
+	@staticmethod
+	def _setup_squares() -> List[Square]:
+		"""Create the squares on the chessboard."""
 		squares = []
 
-		for file in range(8):
-			for rank in range(7, -1, -1):
-				color = Square.LIGHT_SQUARE_COLOR if (file+rank) % 2 == 0 else Square.DARK_SQUARE_COLOR
+		for rank in range(8):
+			for file in range(8):
+				color = Square.LIGHT_SQUARE_COLOR if (file + rank) % 2 == 0 else Square.DARK_SQUARE_COLOR
 				pos = (file * Square.SQUARE_SIZE, rank * Square.SQUARE_SIZE)
 
-				square = Square(color, pos)
+				square = Square(color, pos, file * 8 + rank)
 				squares.append(square)
 
 		return squares
 
+	def _setup_pieces(self):
+		"""Initialize the pieces on the chessboard."""
+		f = FENReader(Board.DEFAULT_POSITION_FEN, self.squares, self.pieces)
+		f.parse_fen()
+
 	def get_square(self, coordinates: str):
+		"""Get a square with the specified coordinates."""
 		return next((square for square in self.squares if square.coordinates == coordinates), None)
 
 	def render(self, surface):
 		for square in self.squares:
 			square.render(surface)
-			label = self.font.render(square.coordinates, 1, Square.SQUARE_FONT_COLOR)
+			label = self.square_font.render(square.coordinates, True, Square.SQUARE_FONT_COLOR)
 			surface.blit(label, square.get_coordinates(surface))
