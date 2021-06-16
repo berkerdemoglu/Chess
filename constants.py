@@ -13,6 +13,8 @@ SCREEN_PROPERTIES = (1280, 720)
 WINDOW_TITLE = 'Chess'
 BACKGROUND_COLOR = (192, 192, 192)
 
+SQUARE_FONT_COLOR = (32, 30, 31)
+
 
 # Functionality constants/enums
 class PieceColor(Enum):

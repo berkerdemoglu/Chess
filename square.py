@@ -17,7 +17,6 @@ class Square(BaseDrawable):
 
 	SQUARE_FONT_PROPERTIES = ('monospace', 14)
 	SQUARE_FONT = pg.font.SysFont(*SQUARE_FONT_PROPERTIES)
-	SQUARE_FONT_COLOR = (32, 30, 31)
 
 	def __init__(self, color: Tuple[int, int, int], pos: Tuple[int, int], index: int):
 		"""Initialize the color and the position of the square."""

@@ -17,7 +17,7 @@ class Game:
 		pg.display.set_caption(WINDOW_TITLE)
 
 		pg.font.init()
-		self.board = Board()
+		self.board = Board(self.screen)
 
 	def start(self):
 		"""Start the main loop of the game."""
