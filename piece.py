@@ -38,7 +38,7 @@ class BasePiece(BaseDrawable):
 
 		self.rect = self.image.get_rect()
 
-	def update_pos(self, surface):
+	def update_pos(self, surface: pg.Surface):
 		square_pos = self.square.get_pos(surface)
 		self.rect.centerx = square_pos[0] + Square.SQUARE_SIZE // 2
 		self.rect.centery = square_pos[1] + Square.SQUARE_SIZE // 2
@@ -48,12 +48,8 @@ class BasePiece(BaseDrawable):
 		"""Get the valid squares the piece can move to."""
 		raise NotImplemented
 
-	@abstractmethod
-	def render(self, surface) -> None:
-		"""
-		Abstract method for rendering the piece to the screen. Provides a default implementation that prints the
-		letter of the piece to its square on the screen.
-		"""
+	def render(self, surface: pg.Surface) -> None:
+		"""Renders the piece to the screen."""
 		surface.blit(self.image, self.rect)
 
 	def __str__(self):
@@ -76,9 +72,6 @@ class Pawn(BasePiece):
 	def get_possible_moves(self, squares):
 		pass
 
-	def render(self, surface):
-		super().render(surface)
-
 
 class Bishop(BasePiece):
 	"""Represents a bishop on the chessboard."""
@@ -90,9 +83,6 @@ class Bishop(BasePiece):
 
 	def get_possible_moves(self, squares):
 		pass
-
-	def render(self, surface):
-		super().render(surface)
 
 
 class Knight(BasePiece):
@@ -106,9 +96,6 @@ class Knight(BasePiece):
 	def get_possible_moves(self, squares):
 		pass
 
-	def render(self, surface):
-		super().render(surface)
-
 
 class Rook(BasePiece):
 	"""Represents a rook on the chessboard."""
@@ -120,9 +107,6 @@ class Rook(BasePiece):
 
 	def get_possible_moves(self, squares):
 		pass
-
-	def render(self, surface):
-		super().render(surface)
 
 
 class Queen(BasePiece):
@@ -136,9 +120,6 @@ class Queen(BasePiece):
 	def get_possible_moves(self, squares):
 		pass
 
-	def render(self, surface):
-		super().render(surface)
-
 
 class King(BasePiece):
 	"""Represents a king on the chessboard."""
@@ -150,6 +131,3 @@ class King(BasePiece):
 
 	def get_possible_moves(self, squares):
 		pass
-
-	def render(self, surface):
-		super().render(surface)
