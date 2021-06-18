@@ -5,7 +5,7 @@ from typing import List, Tuple
 from base import BaseDrawable
 from piece import BasePiece
 from square import Square
-from fen_reader import FENReader
+from fen_parser import FENParser
 from constants import SQUARE_FONT_COLOR
 
 
@@ -61,14 +61,14 @@ class Board(BaseDrawable):
 
 	def _setup_pieces(self) -> None:
 		"""Initialize the pieces on the chessboard."""
-		f = FENReader(Board.DEFAULT_POSITION_FEN, self.squares, self.pieces)
+		f = FENParser(self.surface, Board.DEFAULT_POSITION_FEN, self.squares, self.pieces)
 		f.parse_fen()
 
 	def _setup_coordinates(self) -> List[BoardCoordinate]:
 		"""Initialize the coordinate strings around the chessboard."""
 		coordinates = list()
 
-		# a, b, c, d, e, f, g - horizontal, files
+		# a, b, c, d, e, f, g, h - horizontal, files
 		for i in range(56, 64):
 			square = self.squares[i]
 			pos = square.get_pos(self.surface)
@@ -78,7 +78,7 @@ class Board(BaseDrawable):
 			coordinate = BoardCoordinate(square.coordinates[0], (x, y))
 			coordinates.append(coordinate)
 
-		# 1, 2, 3, 4, 5, 6, 7 - vertical, ranks
+		# 1, 2, 3, 4, 5, 6, 7, 8 - vertical, ranks
 		for i in range(7, 64, 8):
 			square = self.squares[i]
 			pos = square.get_pos(self.surface)
@@ -99,13 +99,6 @@ class Board(BaseDrawable):
 		# Render the squares
 		for square in self.squares:
 			square.render(surface)
-
-			# Render every squares' coordinates on the bottom left corner - TODO: Remove this piece of code
-			label = Square.SQUARE_FONT.render(square.coordinates, True, SQUARE_FONT_COLOR)
-			coords = square.get_pos(surface)
-			x = coords[0] + Square.SQUARE_SIZE - 20
-			y = coords[1] + Square.SQUARE_SIZE - 20
-			surface.blit(label, (x, y))
 
 		# Render the coordinates
 		for coord in self.board_coordinates:
