@@ -6,6 +6,7 @@ import time
 
 from constants import SCREEN_PROPERTIES, WINDOW_TITLE, BACKGROUND_COLOR
 from board import Board
+from piece import BasePiece
 
 
 def time_ms():
@@ -23,6 +24,9 @@ class Game:
 
 		pg.font.init()
 		self.board = Board(self.screen)
+
+		# Flags
+		self.dragging_piece: BasePiece = None
 
 	def start(self):
 		"""Start the main loop of the game."""
@@ -56,6 +60,17 @@ class Game:
 		for event in pg.event.get():
 			if event.type == pg.QUIT:
 				sysexit(1)
+			elif event.type == pg.MOUSEBUTTONDOWN:
+				x, y = pg.mouse.get_pos()
+				self.dragging_piece = self.board.get_piece_by_coords(x, y)
+			elif event.type == pg.MOUSEBUTTONUP:
+				if self.dragging_piece is not None:
+					x, y = pg.mouse.get_pos()
+					new_square = self.board.get_square_by_coords(x, y)
+					self.dragging_piece.square = new_square
+					self.dragging_piece.center_in_square(self.screen)
+
+					self.dragging_piece = None  # reset flag
 
 	def render(self):
 		"""Draw/render objects to the screen."""
@@ -67,4 +82,6 @@ class Game:
 
 	def update(self):
 		"""Update the game."""
-		pass
+		if self.dragging_piece is not None:
+			x, y = pg.mouse.get_pos()
+			self.dragging_piece.set_pos(x, y)

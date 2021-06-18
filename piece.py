@@ -38,11 +38,15 @@ class BasePiece(BaseDrawable):
 
 		self.rect = self.image.get_rect()
 
-	def update_pos(self, surface: pg.Surface):
+	def center_in_square(self, surface: pg.Surface):
 		square_pos = self.square.get_pos(surface)
 		self.rect.centerx = square_pos[0] + Square.SQUARE_SIZE // 2
 		self.rect.centery = square_pos[1] + Square.SQUARE_SIZE // 2
-	
+
+	def set_pos(self, x: float, y: float):
+		self.rect.centerx = x
+		self.rect.centery = y
+
 	@abstractmethod
 	def get_possible_moves(self, squares: Sequence[Square]) -> Sequence[Square]:
 		"""Get the valid squares the piece can move to."""

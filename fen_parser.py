@@ -50,7 +50,7 @@ class FENParser:
 		piece_class = FENParser.FEN_DICT[parsing_letter]
 		try:
 			piece = piece_class(piece_color, piece_square)
-			piece.update_pos(self.surface)
+			piece.center_in_square(self.surface)
 		except KeyError:
 			raise ValueError(f'Invalid input: {piece_letter}')
 

@@ -3,6 +3,7 @@ import pygame as pg
 from typing import List, Tuple
 
 from base import BaseDrawable
+from utils import point_in_rect
 from piece import BasePiece
 from square import Square
 from fen_parser import FENParser
@@ -90,9 +91,18 @@ class Board(BaseDrawable):
 
 		return coordinates
 
-	def get_square(self, coordinates: str):
-		"""Get a square with the specified coordinates."""
-		return next((square for square in self.squares if square.coordinates == coordinates), None)
+	# Getters
+	def get_square_by_coords(self, x: int, y: int):
+		"""Get a square from the board with the specified coordinates."""
+		for square in self.squares:
+			if point_in_rect(x, y, square.get_rect(self.surface)):
+				return square
+
+	def get_piece_by_coords(self, x: int, y: int) -> BasePiece:
+		"""Get a piece from the board with the specified coordinates."""
+		for piece in self.pieces:
+			if point_in_rect(x, y, piece.rect):
+				return piece
 
 	def render(self, surface):
 		"""Render the chessboard."""
