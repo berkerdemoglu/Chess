@@ -17,12 +17,14 @@ BLACK = (0, 0, 0)
 # Game constants
 SCREEN_PROPERTIES = (1280, 720)
 WINDOW_TITLE = 'Chess'
+FPS = 60
 BACKGROUND_COLOR = (192, 192, 192)
 
+# Chess-related constants
 SQUARE_FONT_COLOR = (32, 30, 31)
 
 
-# Piece-related stuff
+# Piece-related constants/enums
 class PieceColor(Enum):
 	"""The color of a piece."""
 	LIGHT = 1

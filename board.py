@@ -104,6 +104,12 @@ class Board(BaseDrawable):
 			if point_in_rect(x, y, piece.rect):
 				return piece
 
+	def get_piece_occupying_square(self, square: Square) -> BasePiece:
+		"""Get a piece from the board occupying the specified square."""
+		for piece in self.pieces:
+			if piece.square == square:
+				return piece
+
 	def render(self, surface):
 		"""Render the chessboard."""
 		# Render the squares

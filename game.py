@@ -4,9 +4,13 @@ from sys import exit as sysexit
 import pygame as pg
 import time
 
-from constants import SCREEN_PROPERTIES, WINDOW_TITLE, BACKGROUND_COLOR
+from constants import (
+	SCREEN_PROPERTIES, WINDOW_TITLE,
+	BACKGROUND_COLOR, FPS
+)
 from board import Board
 from piece import BasePiece
+from move import Move
 
 
 def time_ms():
@@ -30,7 +34,7 @@ class Game:
 
 	def start(self):
 		"""Start the main loop of the game."""
-		update_frequency = 1000000000 / 60
+		update_frequency = 1000000000 / FPS
 
 		last_nano = time.time_ns()
 
@@ -43,14 +47,14 @@ class Game:
 			delta += (now_nano - last_nano) / update_frequency
 			last_nano = now_nano
 
-			while (delta >= 1):
+			while delta >= 1:
 				self.poll_events()
 				self.update()
 				delta -= 1
 				self.render()
 				drawn_frames += 1
 
-			if (time_ms() - second_counter > 1000):
+			if time_ms() - second_counter > 1000:
 				second_counter += 1000
 				pg.display.set_caption(f'{WINDOW_TITLE} - {drawn_frames}fps')
 				drawn_frames = 0
@@ -66,9 +70,12 @@ class Game:
 			elif event.type == pg.MOUSEBUTTONUP:
 				if self.dragging_piece is not None:
 					x, y = pg.mouse.get_pos()
-					new_square = self.board.get_square_by_coords(x, y)
-					self.dragging_piece.square = new_square
-					self.dragging_piece.center_in_square(self.screen)
+					to_square = self.board.get_square_by_coords(x, y)
+					occupying_piece = self.board.get_piece_occupying_square(to_square)
+
+					move = Move(to_square, self.dragging_piece, occupying_piece)
+					move.make_move(self.screen, self.board.pieces)
+					del move
 
 					self.dragging_piece = None  # reset flag
 
