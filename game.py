@@ -1,20 +1,19 @@
-from typing import Tuple
+from typing import Union
 
 from sys import exit as sysexit
 import pygame as pg
 import time
 
+# My modules
 from constants import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
 	BACKGROUND_COLOR, FPS
 )
 from board import Board
+from square import Square
 from piece import BasePiece
 from move import Move
-
-
-def time_ms():
-	return round(time.time() * 1000)
+from utils import time_ms, get_dragged_piece, get_release_square
 
 
 class Game:
@@ -30,17 +29,17 @@ class Game:
 		self.board = Board(self.screen)
 
 		# Flags
-		self.dragging_piece: BasePiece = None
+		self.dragging_piece: Union[BasePiece, None] = None
 
-	def start(self):
+	def start(self) -> None:
 		"""Start the main loop of the game."""
 		update_frequency = 1000000000 / FPS
-
-		last_nano = time.time_ns()
-
-		second_counter = time_ms()
 		delta = 0
 		drawn_frames = 0
+
+		now_nano: int
+		last_nano = time.time_ns()
+		second_counter = time_ms()
 
 		while True:
 			now_nano = time.time_ns()
@@ -59,27 +58,35 @@ class Game:
 				pg.display.set_caption(f'{WINDOW_TITLE} - {drawn_frames}fps')
 				drawn_frames = 0
 
-	def poll_events(self):
+	def poll_events(self) -> None:
 		"""Check events regarding the pygame window."""
 		for event in pg.event.get():
 			if event.type == pg.QUIT:
-				sysexit(1)
+				sysexit(1)  # exit the application
 			elif event.type == pg.MOUSEBUTTONDOWN:
-				x, y = pg.mouse.get_pos()
-				self.dragging_piece = self.board.get_piece_by_coords(x, y)
+				self.dragging_piece = get_dragged_piece(self.board)
 			elif event.type == pg.MOUSEBUTTONUP:
-				if self.dragging_piece is not None:
-					x, y = pg.mouse.get_pos()
-					to_square = self.board.get_square_by_coords(x, y)
-					occupying_piece = self.board.get_piece_occupying_square(to_square)
+				if self.is_dragging:
+					to_square = get_release_square(self.board)
+					self.move_piece(to_square)
 
-					move = Move(to_square, self.dragging_piece, occupying_piece)
-					move.make_move(self.screen, self.board.pieces)
-					del move
+					self.dragging_piece = None  # reset flag after making the move
 
-					self.dragging_piece = None  # reset flag
+	def move_piece(self, to_square: Square):
+		if to_square is not None:
+			occupying_piece = self.board.get_piece_occupying_square(to_square)
 
-	def render(self):
+			move = Move(to_square, self.dragging_piece, occupying_piece)
+			move.make_move(self.screen, self.board.pieces)
+			del move
+		else:
+			self.dragging_piece.center_in_square(self.screen)
+
+	@property
+	def is_dragging(self) -> bool:
+		return True if self.dragging_piece is not None else False
+
+	def render(self) -> None:
 		"""Draw/render objects to the screen."""
 		self.screen.fill(BACKGROUND_COLOR)
 
@@ -87,7 +94,7 @@ class Game:
 
 		pg.display.flip()
 
-	def update(self):
+	def update(self) -> None:
 		"""Update the game."""
 		if self.dragging_piece is not None:
 			x, y = pg.mouse.get_pos()
