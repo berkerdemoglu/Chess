@@ -8,14 +8,8 @@ from constants import PieceColor, SQUARE_FONT_COLOR, PIECE_DIR
 from base import BaseDrawable
 
 
-pg.font.init()  # initialize pygame's font module
-
-
 class BasePiece(BaseDrawable):
 	"""The base piece class. Represents a piece on the chessboard."""
-	# Fonts
-	RENDER_FONT_PROPERTIES = ('monospace', 22)
-	RENDER_FONT = pg.font.SysFont(*RENDER_FONT_PROPERTIES)
 
 	# Dicts
 	PIECE_DICT = {
