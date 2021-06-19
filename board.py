@@ -7,7 +7,7 @@ from utils import point_in_rect
 from piece import BasePiece
 from square import Square
 from fen_parser import FENParser
-from constants import SQUARE_FONT_COLOR
+from constants import SQUARE_FONT_COLOR, PieceColor
 
 
 class BoardCoordinate(BaseDrawable):
@@ -25,17 +25,18 @@ class BoardCoordinate(BaseDrawable):
 		surface.blit(self.label, self.pos)
 
 
-class Board(BaseDrawable):
+class Board:
 	"""Represents the chessboard."""
 	DEFAULT_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 	
 	def __init__(self, surface: pg.Surface):
 		"""Initialize the chessboard."""
 		self.surface = surface
+		self.board_coordinates: List[BoardCoordinate]  # visual coordinates around the board
 
 		self.squares: List[Square]
 		self.pieces: List[BasePiece] = list()
-		self.board_coordinates: List[BoardCoordinate]
+		self.move_turn: PieceColor = PieceColor.LIGHT
 
 		self._create_board()
 
@@ -110,16 +111,20 @@ class Board(BaseDrawable):
 			if piece.square == square:
 				return piece
 
-	def render(self, surface):
+	def render(self, dragged_piece: BasePiece):
 		"""Render the chessboard."""
 		# Render the squares
 		for square in self.squares:
-			square.render(surface)
+			square.render(self.surface)
 
 		# Render the coordinates
 		for coord in self.board_coordinates:
-			coord.render(surface)
+			coord.render(self.surface)
 
 		# Render the pieces
 		for piece in self.pieces:
-			piece.render(surface)
+			if piece != dragged_piece:
+				piece.render(self.surface)
+		# Render the piece being dragged last so that its on top of the other pieces
+		if dragged_piece is not None:
+			dragged_piece.render(self.surface)

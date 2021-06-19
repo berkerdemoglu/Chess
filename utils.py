@@ -1,5 +1,5 @@
 # Typing
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 if TYPE_CHECKING:
 	from board import Board
 	from piece import BasePiece
@@ -7,6 +7,36 @@ if TYPE_CHECKING:
 
 import pygame as pg
 from time import time as time_now
+
+
+def blend_colors(
+		rgba: Tuple[int, int, int, float], rgb: Tuple[int, int, int]
+	) -> Tuple[int, int, int]:
+	"""Get the resulting RGB color of an RGBA color rendered over an RGB color"""
+	red = (rgba[0] * rgba[3]) + (rgb[0] * (1 - rgba[3]))
+	blue = (rgba[1] * rgba[3]) + (rgb[1] * (1 - rgba[3]))
+	green = (rgba[2] * rgba[3]) + (rgb[2] * (1 - rgba[3]))
+	render_color = int(red), int(blue), int(green)
+	return render_color
+
+
+# Used for calculating the FPS
+def time_ms():
+	"""Return the current time in milliseconds."""
+	return round(time_now() * 1000)
+
+
+# Move-related functions
+def get_dragged_piece(board: 'Board') -> 'BasePiece':
+	"""Get the dragged piece by the mouse's current coordinates."""
+	mouse_x, mouse_y = pg.mouse.get_pos()
+	return board.get_piece_by_coords(mouse_x, mouse_y)
+
+
+def get_release_square(board: 'Board') -> 'Square':
+	"""Get the square where the piece was released."""
+	mouse_x, mouse_y = pg.mouse.get_pos()
+	return board.get_square_by_coords(mouse_x, mouse_y)
 
 
 def point_in_rect(x: int, y: int, rect: pg.Rect) -> bool:
@@ -19,20 +49,3 @@ def point_in_rect(x: int, y: int, rect: pg.Rect) -> bool:
 		return True
 
 	return False
-
-
-def time_ms():
-	"""Return the current time in milliseconds."""
-	return round(time_now() * 1000)
-
-
-def get_dragged_piece(board: 'Board') -> 'BasePiece':
-	"""Get the dragged piece by the mouse's current coordinates."""
-	mouse_x, mouse_y = pg.mouse.get_pos()
-	return board.get_piece_by_coords(mouse_x, mouse_y)
-
-
-def get_release_square(board: 'Board') -> 'Square':
-	"""Get the square where the piece was released."""
-	mouse_x, mouse_y = pg.mouse.get_pos()
-	return board.get_square_by_coords(mouse_x, mouse_y)

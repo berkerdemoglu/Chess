@@ -2,6 +2,7 @@
 This module defines constants and enumerations regarding the whole application.
 """
 
+from __future__ import annotations
 from enum import Enum
 
 from pathlib import Path
@@ -29,3 +30,7 @@ class PieceColor(Enum):
 	"""The color of a piece."""
 	LIGHT = 1
 	DARK = 0
+
+	@classmethod
+	def negate(cls, piece_color: PieceColor):
+		return cls.LIGHT if piece_color == cls.DARK else cls.DARK

@@ -29,7 +29,7 @@ class Game:
 		self.board = Board(self.screen)
 
 		# Flags
-		self.dragging_piece: Union[BasePiece, None] = None
+		self.dragged_piece: Union[BasePiece, None] = None
 
 	def start(self) -> None:
 		"""Start the main loop of the game."""
@@ -64,38 +64,41 @@ class Game:
 			if event.type == pg.QUIT:
 				sysexit(1)  # exit the application
 			elif event.type == pg.MOUSEBUTTONDOWN:
-				self.dragging_piece = get_dragged_piece(self.board)
+				self.dragged_piece = get_dragged_piece(self.board)
+				if self.dragged_piece is not None:
+					self.dragged_piece.square.highlight(Square.CURRENT_SQUARE_HIGHLIGHT)
 			elif event.type == pg.MOUSEBUTTONUP:
 				if self.is_dragging:
 					to_square = get_release_square(self.board)
 					self.move_piece(to_square)
 
-					self.dragging_piece = None  # reset flag after making the move
+					self.dragged_piece = None  # reset flag after making the move
 
 	def move_piece(self, to_square: Square):
 		if to_square is not None:
 			occupying_piece = self.board.get_piece_occupying_square(to_square)
 
-			move = Move(to_square, self.dragging_piece, occupying_piece)
-			move.make_move(self.screen, self.board.pieces)
+			move = Move(to_square, self.dragged_piece, occupying_piece)
+			move.make_move(self.screen, self.board)
 			del move
 		else:
-			self.dragging_piece.center_in_square(self.screen)
+			self.dragged_piece.square.unhighlight()
+			self.dragged_piece.center_in_square(self.screen)
 
 	@property
 	def is_dragging(self) -> bool:
-		return True if self.dragging_piece is not None else False
+		return True if self.dragged_piece is not None else False
 
 	def render(self) -> None:
 		"""Draw/render objects to the screen."""
 		self.screen.fill(BACKGROUND_COLOR)
 
-		self.board.render(self.screen)
+		self.board.render(self.dragged_piece)
 
 		pg.display.flip()
 
 	def update(self) -> None:
 		"""Update the game."""
-		if self.dragging_piece is not None:
+		if self.dragged_piece is not None:
 			x, y = pg.mouse.get_pos()
-			self.dragging_piece.set_pos(x, y)
+			self.dragged_piece.set_pos(x, y)

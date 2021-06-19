@@ -2,8 +2,10 @@
 from typing import List
 from pygame import Surface
 
+from board import Board
 from square import Square
 from piece import BasePiece, King
+from constants import PieceColor
 
 
 class Move:
@@ -22,8 +24,11 @@ class Move:
 		if self.moving_piece != self.occupying_piece is not None:
 			pieces_list.remove(self.occupying_piece)
 
-	def is_valid(self) -> bool:
+	def is_valid(self, move_turn: PieceColor) -> bool:
 		"""Check the validity of the move."""
+		if move_turn != self.moving_piece.color:
+			return False
+
 		if self.occupying_piece is not None:
 			if self.moving_piece.color == self.occupying_piece.color:
 				return False
@@ -33,10 +38,15 @@ class Move:
 
 		return True
 
-	def make_move(self, surface: Surface, pieces_list: List[BasePiece]) -> None:
+	def make_move(self, surface: Surface, board: Board) -> None:
 		"""Make the move on the board, if it is valid."""
-		if self.is_valid():
-			self._check_capture(pieces_list)
-			self.moving_piece.square = self.to
+		if self.is_valid(board.move_turn):
+			self._check_capture(board.pieces)
 
+			self.moving_piece.square.unhighlight()
+
+			self.moving_piece.square = self.to  # change the piece's square
+			board.move_turn = PieceColor.negate(self.moving_piece.color)
+
+		self.moving_piece.square.unhighlight()
 		self.moving_piece.center_in_square(surface)
