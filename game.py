@@ -79,7 +79,7 @@ class Game:
 			occupying_piece = self.board.get_piece_occupying_square(to_square)
 
 			move = Move(to_square, self.dragged_piece, occupying_piece)
-			move.make_move(self.screen, self.board)
+			move.make_move(self.board)
 			del move
 		else:
 			self.dragged_piece.square.unhighlight()

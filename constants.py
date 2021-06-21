@@ -1,15 +1,14 @@
 """
 This module defines constants and enumerations regarding the whole application.
 """
-
-from __future__ import annotations
 from enum import Enum
 
 from pathlib import Path
 
 # Settings
 ROOT_DIR = Path(__file__).resolve().parent
-PIECE_DIR = (ROOT_DIR / 'assets') / 'pieces'
+ASSETS_DIR = ROOT_DIR / 'assets'
+PIECE_DIR = ASSETS_DIR / 'pieces'
 
 # Colors
 WHITE = (255, 255, 255)
@@ -32,5 +31,5 @@ class PieceColor(Enum):
 	DARK = 0
 
 	@classmethod
-	def negate(cls, piece_color: PieceColor):
+	def negate(cls, piece_color: 'PieceColor'):
 		return cls.LIGHT if piece_color == cls.DARK else cls.DARK

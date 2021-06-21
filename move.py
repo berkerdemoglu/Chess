@@ -1,14 +1,18 @@
 # Typing
 from typing import List
-from pygame import Surface
+from pygame import Surface, mixer
 
 from board import Board
 from square import Square
 from piece import BasePiece, King
-from constants import PieceColor
+from constants import PieceColor, ASSETS_DIR
+
+
+mixer.init()
 
 
 class Move:
+	INVALID_MOVE_SOUND = mixer.Sound(ASSETS_DIR / 'invalid_move.wav')
 
 	def __init__(self, to: Square, moving_piece: BasePiece, occupying_piece: BasePiece):
 		"""
@@ -38,7 +42,7 @@ class Move:
 
 		return True
 
-	def make_move(self, surface: Surface, board: Board) -> None:
+	def make_move(self, board: Board) -> None:
 		"""Make the move on the board, if it is valid."""
 		if self.is_valid(board.move_turn):
 			self._check_capture(board.pieces)
@@ -47,6 +51,8 @@ class Move:
 
 			self.moving_piece.square = self.to  # change the piece's square
 			board.move_turn = PieceColor.negate(self.moving_piece.color)
+		else:
+			Move.INVALID_MOVE_SOUND.play()
 
 		self.moving_piece.square.unhighlight()
-		self.moving_piece.center_in_square(surface)
+		self.moving_piece.center_in_square(board.surface)
