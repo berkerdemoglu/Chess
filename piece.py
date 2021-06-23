@@ -4,11 +4,11 @@ from abc import abstractmethod
 import pygame as pg
 
 from square import Square
-from constants import PieceColor, SQUARE_FONT_COLOR, PIECE_DIR
-from base import BaseDrawable
+from constants import SquareColor, SQUARE_FONT_COLOR, PIECE_DIR
+from base import BaseRenderable
 
 
-class BasePiece(BaseDrawable):
+class BasePiece(BaseRenderable):
 	"""The base piece class. Represents a piece on the chessboard."""
 
 	# Dicts
@@ -20,14 +20,14 @@ class BasePiece(BaseDrawable):
 	points: int  # how much the piece is worth
 	notation: str  # how the piece is represented in chess notation
 
-	def __init__(self, color: PieceColor, square: Square):
+	def __init__(self, color: SquareColor, square: Square):
 		"""Initialize a piece with a color and square."""
 		self.color = color
 		self.square = square
 
 		# Load image and get its rect
-		imagename = f"{'b' if self.color == PieceColor.DARK else 'w'}" \
-			f"{BasePiece.PIECE_DICT[self.__class__.__name__]}.png"
+		imagename = f"{'b' if self.color == SquareColor.DARK else 'w'}" \
+			f"{self.__class__.notation.lower()}.png"
 		self.image = pg.image.load(PIECE_DIR / imagename).convert_alpha()
 
 		self.rect = self.image.get_rect()
@@ -51,7 +51,7 @@ class BasePiece(BaseDrawable):
 		surface.blit(self.image, self.rect)
 
 	def __str__(self):
-		colorname = 'Light' if self.color == PieceColor.LIGHT else 'Dark'
+		colorname = 'Light' if self.color == SquareColor.LIGHT else 'Dark'
 		return f'{colorname} {self.__class__.__name__} on {self.square.coordinates}'
 
 	def __repr__(self):

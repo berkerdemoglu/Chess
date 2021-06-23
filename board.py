@@ -2,15 +2,15 @@ import pygame as pg
 
 from typing import List, Tuple
 
-from base import BaseDrawable
+from base import BaseRenderable
 from utils import point_in_rect
 from piece import BasePiece
 from square import Square
 from fen_parser import FENParser
-from constants import SQUARE_FONT_COLOR, PieceColor
+from constants import SQUARE_FONT_COLOR, SquareColor
 
 
-class BoardCoordinate(BaseDrawable):
+class BoardCoordinate(BaseRenderable):
 	"""A class that handles drawing coordinates around the board."""
 	RENDER_FONT_PROPERTIES = ('monospace', 18)
 	RENDER_FONT = pg.font.SysFont(*RENDER_FONT_PROPERTIES)
@@ -36,7 +36,7 @@ class Board:
 
 		self.squares: List[Square]
 		self.pieces: List[BasePiece] = list()
-		self.move_turn: PieceColor = PieceColor.LIGHT
+		self.move_turn: SquareColor = SquareColor.LIGHT
 
 		self._create_board()
 
@@ -53,10 +53,11 @@ class Board:
 
 		for rank in range(8):
 			for file in range(8):
-				color = Square.LIGHT_SQUARE_COLOR if (file + rank) % 2 == 0 else Square.DARK_SQUARE_COLOR
+				color = SquareColor.LIGHT if (file + rank) % 2 == 0 else SquareColor.DARK
 				pos = (file * Square.SQUARE_SIZE, rank * Square.SQUARE_SIZE)
+				index = file*8 + rank
 
-				square = Square(color, pos, file*8 + rank)
+				square = Square(color, pos, index)
 				squares.append(square)
 
 		return squares

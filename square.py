@@ -2,14 +2,15 @@ from typing import Tuple, Union
 
 import pygame as pg
 
-from base import BaseDrawable
+from base import BaseRenderable
+from constants import SquareColor
 from utils import blend_colors
 
 
 pg.font.init()
 
 
-class Square(BaseDrawable):
+class Square(BaseRenderable):
 	"""Represents a single square on the chessboard."""
 	SQUARE_SIZE = 75
 
@@ -22,11 +23,13 @@ class Square(BaseDrawable):
 	SQUARE_FONT_PROPERTIES = ('monospace', 14)
 	SQUARE_FONT = pg.font.SysFont(*SQUARE_FONT_PROPERTIES)
 
-	def __init__(self, color: Tuple[int, int, int], pos: Tuple[int, int], index: int):
+	def __init__(self, color: SquareColor, pos: Tuple[int, int], index: int):
 		"""Initialize the color and the position of the square."""
 		self.color = color
+		self._draw_color = Square.LIGHT_SQUARE_COLOR if color == SquareColor.LIGHT else Square.DARK_SQUARE_COLOR
 
-		self._highlight_color: Tuple[int, int, int, float] = color[0], color[1], color[2], 1.0
+		self._highlight_color: Tuple[int, int, int, float] = \
+			self._draw_color[0], self._draw_color[1], self._draw_color[2], 1.0
 		self._colorname = 'LIGHT' if color == Square.LIGHT_SQUARE_COLOR else 'DARK'
 
 		self.center_x = pos[0]
@@ -90,14 +93,16 @@ class Square(BaseDrawable):
 		self._highlight_color = highlight_color
 
 	def unhighlight(self):
-		self._highlight_color = self.color[0], self.color[1], self.color[2], 1.0
+		self._highlight_color = self._draw_color[0], self._draw_color[1], self._draw_color[2], 1.0
+
+	@property
+	def render_color(self):
+		return blend_colors(self._highlight_color, self._draw_color)
 
 	def render(self, surface: pg.Surface):
-		render_color = blend_colors(self._highlight_color, self.color)
-
 		rect = self.get_rect(surface)
 
-		pg.draw.rect(surface, render_color, rect)
+		pg.draw.rect(surface, self.render_color, rect)
 
 	def __str__(self):
 		return f'Color: {self._colorname}, Coordinates: {self.coordinates}'

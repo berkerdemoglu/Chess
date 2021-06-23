@@ -1,7 +1,7 @@
 from typing import List
 
 from square import Square
-from constants import PieceColor
+from constants import SquareColor
 from piece import BasePiece, Pawn, Knight, Bishop, Rook, Queen, King
 
 
@@ -45,7 +45,7 @@ class FENParser:
 	def parse_piece(self, piece_letter: str, piece_square: Square) -> BasePiece:
 		"""Parse a piece."""
 		parsing_letter = piece_letter.lower()
-		piece_color = PieceColor.LIGHT if piece_letter.isupper() else PieceColor.DARK
+		piece_color = SquareColor.LIGHT if piece_letter.isupper() else SquareColor.DARK
 
 		piece_class = FENParser.FEN_DICT[parsing_letter]
 		try:

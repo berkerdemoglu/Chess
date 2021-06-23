@@ -25,11 +25,11 @@ SQUARE_FONT_COLOR = (32, 30, 31)
 
 
 # Piece-related constants/enums
-class PieceColor(Enum):
-	"""The color of a piece."""
-	LIGHT = 1
+class SquareColor(Enum):
+	"""The color of a square/piece."""
 	DARK = 0
+	LIGHT = 1
 
 	@classmethod
-	def negate(cls, piece_color: 'PieceColor'):
+	def negate(cls, piece_color: 'SquareColor'):
 		return cls.LIGHT if piece_color == cls.DARK else cls.DARK
