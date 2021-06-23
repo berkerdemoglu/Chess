@@ -1,11 +1,11 @@
 # Typing
 from typing import List
-from pygame import Surface, mixer
+from pygame import mixer
 
 from board import Board
 from square import Square
 from piece import BasePiece, King
-from constants import PieceColor, ASSETS_DIR
+from constants import SquareColor, ASSETS_DIR
 
 
 mixer.init()
@@ -23,19 +23,33 @@ class Move:
 		self.moving_piece = moving_piece
 		self.occupying_piece = occupying_piece
 
-	def _check_capture(self, pieces_list: List[BasePiece]):
+	def _check_capture(self, pieces_list: List[BasePiece]) -> None:
 		"""Check if a piece is being captured."""
 		if self.moving_piece != self.occupying_piece is not None:
 			pieces_list.remove(self.occupying_piece)
 
-	def is_valid(self, move_turn: PieceColor) -> bool:
-		"""Check the validity of the move."""
+	def _check_move_turn(self, move_turn: SquareColor) -> bool:
+		"""Check if it is the moving piece's _draw_color's turn."""
 		if move_turn != self.moving_piece.color:
 			return False
 
+		return True
+
+	def _check_same_color(self) -> bool:
+		"""Check if the moving piece and the occupying of the move square is the same color."""
 		if self.occupying_piece is not None:
 			if self.moving_piece.color == self.occupying_piece.color:
 				return False
+
+		return True
+
+	def is_valid(self, move_turn: SquareColor) -> bool:
+		"""Check the validity of the move."""
+		if not self._check_move_turn(move_turn):
+			return False
+
+		if not self._check_same_color():
+			return False
 
 		if type(self.occupying_piece) == King:
 			return False
@@ -47,12 +61,12 @@ class Move:
 		if self.is_valid(board.move_turn):
 			self._check_capture(board.pieces)
 
-			self.moving_piece.square.unhighlight()
+			self.moving_piece.square.unhighlight()  # unhighlight the previous square
 
 			self.moving_piece.square = self.to  # change the piece's square
-			board.move_turn = PieceColor.negate(self.moving_piece.color)
+			board.move_turn = SquareColor.negate(self.moving_piece.color)
 		else:
 			Move.INVALID_MOVE_SOUND.play()
+			self.moving_piece.square.unhighlight()  # unhighlight the current square
 
-		self.moving_piece.square.unhighlight()
 		self.moving_piece.center_in_square(board.surface)
