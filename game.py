@@ -2,9 +2,9 @@ from typing import Union
 
 from sys import exit as sysexit
 import pygame as pg
-import time
 
 # My modules
+from base import BaseDisplay
 from constants import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
 	BACKGROUND_COLOR, FPS
@@ -13,17 +13,15 @@ from board import Board
 from square import Square
 from piece import BasePiece
 from move import Move
-from utils import time_ms, get_dragged_piece, get_release_square
+from utils import get_dragged_piece, get_release_square
 
 
-class Game:
-	"""The class that represents the whole application."""
+class ChessGame(BaseDisplay):
+	"""The class that represents the game."""
 
 	def __init__(self):
 		"""Initialize pygame, the screen and the board."""
-		pg.init()
-		self.screen = pg.display.set_mode(SCREEN_PROPERTIES)
-		pg.display.set_caption(WINDOW_TITLE)
+		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, FPS, BACKGROUND_COLOR)
 
 		pg.font.init()
 		self.board = Board(self.screen)
@@ -31,50 +29,8 @@ class Game:
 		# Flags
 		self.dragged_piece: Union[BasePiece, None] = None
 
-	def start(self) -> None:
-		"""Start the main loop of the game."""
-		update_frequency = 1000000000 / FPS
-		delta = 0
-		drawn_frames = 0
-
-		now_nano: int
-		last_nano = time.time_ns()
-		second_counter = time_ms()
-
-		while True:
-			now_nano = time.time_ns()
-			delta += (now_nano - last_nano) / update_frequency
-			last_nano = now_nano
-
-			while delta >= 1:
-				self.poll_events()
-				self.update()
-				delta -= 1
-				self.render()
-				drawn_frames += 1
-
-			if time_ms() - second_counter > 1000:
-				second_counter += 1000
-				pg.display.set_caption(f'{WINDOW_TITLE} - {drawn_frames}fps')
-				drawn_frames = 0
-
-	def poll_events(self) -> None:
-		"""Check events regarding the pygame window."""
-		for event in pg.event.get():
-			if event.type == pg.QUIT:
-				sysexit(1)  # exit the application
-			elif event.type == pg.MOUSEBUTTONDOWN:
-				self.dragged_piece = get_dragged_piece(self.board)
-				if self.dragged_piece is not None:
-					self.dragged_piece.square.highlight(Square.CURRENT_SQUARE_HIGHLIGHT)
-			elif event.type == pg.MOUSEBUTTONUP:
-				if self.is_dragging:
-					to_square = get_release_square(self.board)
-					self.move_piece(to_square)
-
-					self.dragged_piece = None  # reset flag after making the move
-
-	def move_piece(self, to_square: Square):
+	def move_piece(self, to_square: Square) -> None:
+		"""Move the dragged piece to a new square."""
 		if to_square is not None:
 			occupying_piece = self.board.get_piece_occupying_square(to_square)
 
@@ -87,18 +43,35 @@ class Game:
 
 	@property
 	def is_dragging(self) -> bool:
+		"""Flag for checking if a piece is actually being dragged by the user/player."""
 		return True if self.dragged_piece is not None else False
 
-	def render(self) -> None:
-		"""Draw/render objects to the screen."""
-		self.screen.fill(BACKGROUND_COLOR)
+	# Define abstract methods from BaseDisplay below
+	def poll_events(self):
+		for event in pg.event.get():
+			if event.type == pg.QUIT:
+				# Exit the application.
+				sysexit(1)
+			elif event.type == pg.MOUSEBUTTONDOWN:
+				# Start dragging a piece if it was clicked on.
+				self.dragged_piece = get_dragged_piece(self.board)
+				if self.dragged_piece is not None:
+					self.dragged_piece.square.highlight(Square.CURRENT_SQUARE_HIGHLIGHT)
+			elif event.type == pg.MOUSEBUTTONUP:
+				# Release the piece being dragged if it exists.
+				if self.is_dragging:
+					to_square = get_release_square(self.board)
+					self.move_piece(to_square)
+
+					# Reset dragged piece reference after making the move
+					self.dragged_piece = None
+
+	def render(self):
+		super().render()
 
 		self.board.render(self.dragged_piece)
 
-		pg.display.flip()
-
-	def update(self) -> None:
-		"""Update the game."""
+	def update(self):
 		if self.dragged_piece is not None:
 			x, y = pg.mouse.get_pos()
 			self.dragged_piece.set_pos(x, y)
