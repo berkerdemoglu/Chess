@@ -1,8 +1,8 @@
-from game import Game
+from game import ChessGame
 
 
 def main():
-	game = Game()
+	game = ChessGame()
 	game.start()
 
 
