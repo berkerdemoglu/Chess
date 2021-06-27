@@ -4,7 +4,7 @@ if TYPE_CHECKING:
 	from .board import Board
 	from .square import Square
 
-from constants import ASSETS_DIR
+from settings import ASSETS_DIR
 from .chess_constants import ChessColor
 from .piece import BasePiece, King
 
