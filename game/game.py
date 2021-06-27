@@ -9,7 +9,7 @@ import pygame as pg
 
 # My modules
 from graphics import Display
-from constants import (
+from graphics.constants import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
 	BACKGROUND_COLOR, FPS
 )
