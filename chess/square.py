@@ -3,7 +3,7 @@ from typing import Tuple, Union, NoReturn
 
 import pygame as pg
 
-from base import Renderable
+from graphics import Renderable
 from utils import blend_colors
 from .chess_constants import ChessColor
 

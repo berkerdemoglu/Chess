@@ -9,15 +9,6 @@ import time
 from utils import time_ms
 
 
-class Renderable(ABC):
-	"""An abstract class for objects that can be rendered to the screen."""
-
-	@abstractmethod
-	def render(self, surface: pg.Surface) -> None:
-		"""Render the object to the screen."""
-		raise NotImplemented
-
-
 class Display(ABC):
 	"""An abstract class that handles graphics."""
 

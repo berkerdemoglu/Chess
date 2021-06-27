@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import pygame as pg
 
-from base import Renderable
+from graphics import Renderable
 from utils import point_in_rect
 from .piece import BasePiece
 from .square import Square

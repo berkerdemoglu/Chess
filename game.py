@@ -8,7 +8,7 @@ from sys import exit as sysexit
 import pygame as pg
 
 # My modules
-from base import Display
+from graphics import Display
 from constants import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
 	BACKGROUND_COLOR, FPS

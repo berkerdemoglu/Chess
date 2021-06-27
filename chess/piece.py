@@ -8,7 +8,7 @@ import pygame as pg
 from .square import Square
 from .chess_constants import ChessColor
 from constants import PIECE_DIR
-from base import Renderable
+from graphics import Renderable
 
 
 class BasePiece(Renderable):
