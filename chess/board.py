@@ -1,16 +1,17 @@
-import pygame as pg
-
+# Type annotations
 from typing import List, Tuple
 
-from base import BaseRenderable
+import pygame as pg
+
+from base import Renderable
 from utils import point_in_rect
 from .piece import BasePiece
-from . import Square
-from fen_parser import FENParser
-from constants import SQUARE_FONT_COLOR, SquareColor
+from .square import Square
+from fen_parser.fen_parser import FENParser
+from .chess_constants import SQUARE_FONT_COLOR, ChessColor
 
 
-class BoardCoordinate(BaseRenderable):
+class BoardCoordinate(Renderable):
 	"""A class that handles drawing coordinates around the board."""
 	RENDER_FONT_PROPERTIES = ('monospace', 18)
 	RENDER_FONT = pg.font.SysFont(*RENDER_FONT_PROPERTIES)
@@ -36,7 +37,7 @@ class Board:
 
 		self.squares: List[Square]
 		self.pieces: List[BasePiece] = list()
-		self.move_turn: SquareColor = SquareColor.LIGHT
+		self.move_turn: ChessColor = ChessColor.LIGHT
 
 		self._create_board()
 
@@ -53,7 +54,7 @@ class Board:
 
 		for rank in range(8):
 			for file in range(8):
-				color = SquareColor.LIGHT if (file + rank) % 2 == 0 else SquareColor.DARK
+				color = ChessColor.LIGHT if (file + rank) % 2 == 0 else ChessColor.DARK
 				pos = (file * Square.SQUARE_SIZE, rank * Square.SQUARE_SIZE)
 				index = file*8 + rank
 
@@ -64,8 +65,8 @@ class Board:
 
 	def _setup_pieces(self) -> None:
 		"""Initialize the pieces on the chessboard."""
-		f = FENParser(self.surface, Board.DEFAULT_POSITION_FEN, self.squares, self.pieces)
-		f.parse_fen()
+		fen_parser = FENParser(self.surface, Board.DEFAULT_POSITION_FEN, self)
+		fen_parser.parse()
 
 	def _setup_coordinates(self) -> List[BoardCoordinate]:
 		"""Initialize the coordinate strings around the chessboard."""

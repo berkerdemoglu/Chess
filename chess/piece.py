@@ -1,14 +1,17 @@
+# Type annotations
 from typing import Sequence
+
 from abc import abstractmethod
 
 import pygame as pg
 
 from .square import Square
-from constants import SquareColor, PIECE_DIR
-from base import BaseRenderable
+from .chess_constants import ChessColor
+from constants import PIECE_DIR
+from base import Renderable
 
 
-class BasePiece(BaseRenderable):
+class BasePiece(Renderable):
 	"""The base piece class. Represents a piece on the chessboard."""
 
 	# Dicts
@@ -20,13 +23,13 @@ class BasePiece(BaseRenderable):
 	points: int  # how much the piece is worth
 	notation: str  # how the piece is represented in chess notation
 
-	def __init__(self, color: SquareColor, square: Square):
+	def __init__(self, color: ChessColor, square: Square):
 		"""Initialize a piece with a color and square."""
 		self.color = color
 		self.square = square
 
 		# Load image and get its rect
-		imagename = f"{'b' if self.color == SquareColor.DARK else 'w'}" \
+		imagename = f"{'w' if self.color == ChessColor.LIGHT else 'b'}" \
 			f"{self.__class__.notation.lower()}.png"
 		self.image = pg.image.load(PIECE_DIR / imagename).convert_alpha()
 
@@ -51,7 +54,7 @@ class BasePiece(BaseRenderable):
 		surface.blit(self.image, self.rect)
 
 	def __str__(self):
-		colorname = 'Light' if self.color == SquareColor.LIGHT else 'Dark'
+		colorname = 'Light' if self.color == ChessColor.LIGHT else 'Dark'
 		return f'{colorname} {self.__class__.__name__} on {self.square.coordinates}'
 
 	def __repr__(self):

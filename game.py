@@ -1,33 +1,37 @@
-from typing import Union
+# Type annotations
+from typing import Union, TYPE_CHECKING
+if TYPE_CHECKING:
+	from chess.piece import BasePiece
 
+# Pygame and system
 from sys import exit as sysexit
 import pygame as pg
 
 # My modules
-from base import BaseDisplay
+from base import Display
 from constants import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
 	BACKGROUND_COLOR, FPS
 )
 from utils import get_dragged_piece, get_release_square
-from chess import Board, Square, Move
-from chess.piece import BasePiece
+from chess import Board, Move, Square
+from fen_parser.board_parser import BoardParser
 
 
-class ChessGame(BaseDisplay):
+class ChessGame(Display):
 	"""The class that represents the game."""
 
 	def __init__(self):
 		"""Initialize pygame, the screen and the board."""
 		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, FPS, BACKGROUND_COLOR)
 
-		pg.font.init()
 		self.board = Board(self.screen)
+		self.board_parser = BoardParser(self.board)
 
 		# Flags
-		self.dragged_piece: Union[BasePiece, None] = None
+		self.dragged_piece: Union['BasePiece', None] = None
 
-	def move_piece(self, to_square: Square) -> None:
+	def move_piece(self, to_square: 'Square') -> None:
 		"""Move the dragged piece to a new square."""
 		if to_square is not None:
 			occupying_piece = self.board.get_piece_occupying_square(to_square)
