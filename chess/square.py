@@ -1,33 +1,43 @@
-from typing import Tuple, Union
+# Type annotations
+from typing import Tuple, Union, NoReturn
 
 import pygame as pg
 
-from base import BaseRenderable
-from constants import SquareColor
+from base import Renderable
 from utils import blend_colors
+from .chess_constants import ChessColor
 
 
 pg.font.init()
 
 
-class Square(BaseRenderable):
+class Square(Renderable):
 	"""Represents a single square on the chessboard."""
-	SQUARE_SIZE = 75
+	SQUARE_SIZE = 75  # size on the screen
 
+	# Colors
 	DARK_SQUARE_COLOR = (140, 94, 67)
 	LIGHT_SQUARE_COLOR = (247, 237, 205)
 
+	# Highlight colors
 	CURRENT_SQUARE_HIGHLIGHT = (255, 222, 33, 0.5)
 	MOVED_SQUARE_HIGHLIGHT = (255, 0, 0, 0.5)
 
+	# Fonts
 	SQUARE_FONT_PROPERTIES = ('monospace', 14)
 	SQUARE_FONT = pg.font.SysFont(*SQUARE_FONT_PROPERTIES)
 
-	def __init__(self, color: SquareColor, pos: Tuple[int, int], index: int):
+	_FILE_DICT = {  # Used for int to str lookup for files
+		0: 'a', 1: 'b', 2: 'c',
+		3: 'd', 4: 'e', 5: 'f',
+		6: 'g', 7: '8'
+	}
+
+	def __init__(self, color: ChessColor, pos: Tuple[int, int], index: int):
 		"""Initialize the color and the position of the square."""
 		self.color = color
-		self._draw_color = Square.LIGHT_SQUARE_COLOR if color == SquareColor.LIGHT else Square.DARK_SQUARE_COLOR
-
+		self._draw_color = Square.LIGHT_SQUARE_COLOR \
+			if color == ChessColor.LIGHT else Square.DARK_SQUARE_COLOR
 		self._highlight_color: Tuple[int, int, int, float] = \
 			self._draw_color[0], self._draw_color[1], self._draw_color[2], 1.0
 		self._colorname = 'LIGHT' if color == Square.LIGHT_SQUARE_COLOR else 'DARK'
@@ -46,31 +56,17 @@ class Square(BaseRenderable):
 		return file + rank
 
 	@staticmethod
-	def _get_file_str(file: int):
+	def _get_file_str(file: int) -> Union[str, NoReturn]:
 		"""Convert a given integer to a file letter on a chessboard."""
-		if file == 0:
-			file_str = 'a'
-		elif file == 1:
-			file_str = 'b'
-		elif file == 2:
-			file_str = 'c'
-		elif file == 3:
-			file_str = 'd'
-		elif file == 4:
-			file_str = 'e'
-		elif file == 5:
-			file_str = 'f'
-		elif file == 6:
-			file_str = 'g'
-		elif file == 7:
-			file_str = 'h'
-		else:
+		try:
+			file_str = Square._FILE_DICT[file]
+		except KeyError:
 			raise ValueError('File (as an integer) must be between 0 and 7')
-
-		return file_str
+		else:
+			return file_str
 
 	@staticmethod
-	def _get_rank_str(rank: int):
+	def _get_rank_str(rank: int) -> str:
 		"""Convert a given integer to a rank number on a chessboard."""
 		return str(8 - rank)
 
@@ -90,21 +86,24 @@ class Square(BaseRenderable):
 
 	# Color-related methods
 	def highlight(self, highlight_color: Tuple[int, int, int, float]):
+		"""Highlight the square with a RGBA color."""
 		self._highlight_color = highlight_color
 
 	def unhighlight(self):
+		"""Unhighlight the square."""
 		self._highlight_color = self._draw_color[0], self._draw_color[1], self._draw_color[2], 1.0
 
-	@property
-	def render_color(self):
+	def get_render_color(self):
+		"""Get the square's color for graphics."""
 		return blend_colors(self._highlight_color, self._draw_color)
 
 	def render(self, surface: pg.Surface):
 		rect = self.get_rect(surface)
 
-		pg.draw.rect(surface, self.render_color, rect)
+		pg.draw.rect(surface, self.get_render_color(), rect)
 
 	def __str__(self):
+		"""String representation of a square."""
 		return f'Color: {self._colorname}, Coordinates: {self.coordinates}'
 
 	def __repr__(self):
