@@ -9,11 +9,9 @@ from constants import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
 	BACKGROUND_COLOR, FPS
 )
-from board import Board
-from square import Square
-from piece import BasePiece
-from move import Move
 from utils import get_dragged_piece, get_release_square
+from chess import Board, Square, Move
+from chess.piece import BasePiece
 
 
 class ChessGame(BaseDisplay):

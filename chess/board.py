@@ -4,8 +4,8 @@ from typing import List, Tuple
 
 from base import BaseRenderable
 from utils import point_in_rect
-from piece import BasePiece
-from square import Square
+from .piece import BasePiece
+from . import Square
 from fen_parser import FENParser
 from constants import SQUARE_FONT_COLOR, SquareColor
 

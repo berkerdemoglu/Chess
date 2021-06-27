@@ -3,8 +3,8 @@ from abc import abstractmethod
 
 import pygame as pg
 
-from square import Square
-from constants import SquareColor, SQUARE_FONT_COLOR, PIECE_DIR
+from .square import Square
+from constants import SquareColor, PIECE_DIR
 from base import BaseRenderable
 
 

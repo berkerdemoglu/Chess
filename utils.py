@@ -1,9 +1,8 @@
 # Typing
 from typing import TYPE_CHECKING, Tuple
 if TYPE_CHECKING:
-	from board import Board
-	from piece import BasePiece
-	from square import Square
+	from chess import Board, Square
+	from chess.piece import BasePiece
 
 import pygame as pg
 from time import time as time_now

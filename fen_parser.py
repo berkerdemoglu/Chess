@@ -1,14 +1,13 @@
 from typing import List
 
-from square import Square
+from chess import Square, piece as pieces
 from constants import SquareColor
-from piece import BasePiece, Pawn, Knight, Bishop, Rook, Queen, King
 
 
 class FENParser:
 	FEN_DICT = {
-		'p': Pawn, 'n': Knight, 'b': Bishop,
-		'r': Rook, 'q': Queen, 'k': King
+		'p': pieces.Pawn, 'n': pieces.Knight, 'b': pieces.Bishop,
+		'r': pieces.Rook, 'q': pieces.Queen, 'k': pieces.King
 	}
 
 	def __init__(self, surface, fen: str, squares: List[Square], pieces_list: List):

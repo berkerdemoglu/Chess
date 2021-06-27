@@ -2,9 +2,9 @@
 from typing import List
 from pygame import mixer
 
-from board import Board
-from square import Square
-from piece import BasePiece, King
+from .board import Board
+from .square import Square
+from .piece import BasePiece, King
 from constants import SquareColor, ASSETS_DIR
 
 
