@@ -22,15 +22,17 @@ class Square(Renderable):
 	# Highlight colors
 	CURRENT_SQUARE_HIGHLIGHT = (255, 222, 33, 0.5)
 	MOVED_SQUARE_HIGHLIGHT = (255, 0, 0, 0.5)
+	VALID_MOVE_HIGHLIGHT = (53, 116, 204, 0.5)
 
 	# Fonts
 	SQUARE_FONT_PROPERTIES = ('monospace', 14)
 	SQUARE_FONT = pg.font.SysFont(*SQUARE_FONT_PROPERTIES)
+	SQUARE_FONT_COLOR = (32, 30, 31)
 
 	_FILE_DICT = {  # Used for int to str lookup for files
 		0: 'a', 1: 'b', 2: 'c',
 		3: 'd', 4: 'e', 5: 'f',
-		6: 'g', 7: '8'
+		6: 'g', 7: 'h'
 	}
 
 	def __init__(self, color: ChessColor, pos: Tuple[int, int], index: int):

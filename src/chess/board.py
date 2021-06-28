@@ -8,7 +8,7 @@ from utils import point_in_rect
 from .piece import BasePiece
 from .square import Square
 from fen_parser.fen_parser import FENParser
-from .chess_constants import SQUARE_FONT_COLOR, ChessColor
+from .chess_constants import ChessColor
 
 
 class BoardCoordinate(Renderable):
@@ -18,7 +18,7 @@ class BoardCoordinate(Renderable):
 
 	def __init__(self, coordinate: str, pos: Tuple[int, int]):
 		"""Initialize the coordinate and its position on the screen."""
-		self.label = BoardCoordinate.RENDER_FONT.render(coordinate, True, SQUARE_FONT_COLOR)
+		self.label = BoardCoordinate.RENDER_FONT.render(coordinate, True, Square.SQUARE_FONT_COLOR)
 		self.pos = pos
 
 	def render(self, surface) -> None:
@@ -56,7 +56,7 @@ class Board:
 			for file in range(8):
 				color = ChessColor.LIGHT if (file + rank) % 2 == 0 else ChessColor.DARK
 				pos = (file * Square.SQUARE_SIZE, rank * Square.SQUARE_SIZE)
-				index = file*8 + rank
+				index = rank*8 + file
 
 				square = Square(color, pos, index)
 				squares.append(square)
