@@ -1,4 +1,4 @@
-# Typing
+# Type annotations
 from typing import TYPE_CHECKING, Tuple
 if TYPE_CHECKING:
 	from chess import Board, Square
@@ -11,12 +11,12 @@ from time import time as time_now
 def blend_colors(
 		rgba: Tuple[int, int, int, float], rgb: Tuple[int, int, int]
 	) -> Tuple[int, int, int]:
-	"""Get the resulting RGB color of an RGBA color rendered over an RGB color"""
+	"""Get the resulting RGB color of an RGBA color rendered over an RGB color."""
 	red = (rgba[0] * rgba[3]) + (rgb[0] * (1 - rgba[3]))
 	blue = (rgba[1] * rgba[3]) + (rgb[1] * (1 - rgba[3]))
 	green = (rgba[2] * rgba[3]) + (rgb[2] * (1 - rgba[3]))
-	render_color = int(red), int(blue), int(green)
-	return render_color
+	result_color = int(red), int(blue), int(green)
+	return result_color
 
 
 # Used for calculating the FPS
