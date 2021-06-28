@@ -60,7 +60,7 @@ class FENParser(BaseParser):
 		except KeyError:
 			raise ValueError(f'Invalid input: {piece_letter}')
 		else:
-			piece = piece_class(piece_color, piece_square)
+			piece = piece_class(piece_color, piece_square, self.surface)
 			piece.center_in_square(self.surface)
 
 		return piece
