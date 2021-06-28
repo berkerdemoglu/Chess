@@ -1,5 +1,5 @@
 # Type annotations
-from typing import Union, TYPE_CHECKING
+from typing import Union, TYPE_CHECKING, List
 if TYPE_CHECKING:
 	from chess.piece import BasePiece
 
@@ -25,30 +25,43 @@ class ChessGame(Display):
 		"""Initialize pygame, the screen and the board."""
 		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, FPS, BACKGROUND_COLOR)
 
-		self.board = Board(self.screen)
-		self.board_parser = BoardParser(self.board)
+		self.board: Board = Board(self.screen)
+		self.board_parser: BoardParser = BoardParser(self.board)
 
 		# Flags
 		self.dragged_piece: Union['BasePiece', None] = None
+		self.possible_squares: Union['List', None] = None
 
 	def move_piece(self, to_square: 'Square') -> None:
 		"""Move the dragged piece to a new square."""
 		if to_square is not None:
+			# Get the current occupant of the square to piece is trying to move to.
 			occupying_piece = self.board.get_piece_occupying_square(to_square)
 
+			# Create a move and make the move.
 			move = Move(to_square, self.dragged_piece, occupying_piece)
-			move.make_move(self.board)
+			move.make_move(self.board, self.possible_squares)
+
+			# Delete now unnecessary objects to free up memory.
 			del move
 		else:
 			self.dragged_piece.square.unhighlight()
 			self.dragged_piece.center_in_square(self.screen)
+
+		# Unhighlight all previously highlighted squares.
+		for square in self.possible_squares:
+			square.unhighlight()
 
 	@property
 	def is_dragging(self) -> bool:
 		"""Flag for checking if a piece is actually being dragged by the user/player."""
 		return True if self.dragged_piece is not None else False
 
-	# Define abstract methods from BaseDisplay below
+	@is_dragging.setter
+	def is_dragging(self, value) -> None:
+		self.dragged_piece = value
+
+	# Define abstract methods from Display below
 	def poll_events(self):
 		for event in pg.event.get():
 			if event.type == pg.QUIT:
@@ -58,7 +71,11 @@ class ChessGame(Display):
 				# Start dragging a piece if it was clicked on.
 				self.dragged_piece = get_dragged_piece(self.board)
 				if self.dragged_piece is not None:
+					# Highlight the dragged piece's current square.
 					self.dragged_piece.square.highlight(Square.CURRENT_SQUARE_HIGHLIGHT)
+
+					# Get possible squares the piece can move to.
+					self.possible_squares = self.dragged_piece.get_possible_moves(self.board.squares)
 			elif event.type == pg.MOUSEBUTTONUP:
 				# Release the piece being dragged if it exists.
 				if self.is_dragging:
@@ -66,7 +83,7 @@ class ChessGame(Display):
 					self.move_piece(to_square)
 
 					# Reset dragged piece reference after making the move
-					self.dragged_piece = None
+					self.is_dragging = None
 
 	def render(self):
 		super().render()

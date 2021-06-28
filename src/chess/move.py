@@ -44,7 +44,7 @@ class Move:
 
 		return True
 
-	def is_valid(self, move_turn: 'ChessColor') -> bool:
+	def is_valid(self, move_turn: 'ChessColor', possible_squares: List['Square']) -> bool:
 		"""Check the validity of the move."""
 		if not self._check_move_turn(move_turn):
 			return False
@@ -55,19 +55,30 @@ class Move:
 		if type(self.occupying_piece) == King:
 			return False
 
+		if self.to not in possible_squares:
+			return False
+
 		return True
 
-	def make_move(self, board: 'Board') -> None:
+	def make_move(self, board: 'Board', possible_squares: List['Square']) -> None:
 		"""Make the move on the board, if it is valid."""
-		if self.is_valid(board.move_turn):
+		if self.is_valid(board.move_turn, possible_squares):
 			self._check_capture(board.pieces)
 
-			self.moving_piece.square.unhighlight()  # unhighlight the previous square
+			# Unhighlight the previous square
+			self.moving_piece.square.unhighlight()
 
-			self.moving_piece.square = self.to  # change the piece's square
+			# Change the piece's square
+			self.moving_piece.square = self.to
+
+			# Change the move turn
 			board.move_turn = ChessColor.negate(self.moving_piece.color)
 		else:
+			# Play the invalid move sound
 			Move.INVALID_MOVE_SOUND.play()
-			self.moving_piece.square.unhighlight()  # unhighlight the current square
 
+			# Unhighlight the current square
+			self.moving_piece.square.unhighlight()
+
+		# Center the piece in the square so that it looks nice
 		self.moving_piece.center_in_square(board.surface)
