@@ -1,5 +1,5 @@
 # Type annotations
-from typing import List, Sequence, Tuple, Callable, TYPE_CHECKING
+from typing import List, Sequence, Callable, TYPE_CHECKING
 if TYPE_CHECKING:
 	from .board import Board
 
@@ -118,34 +118,32 @@ class BasePiece(RenderablePiece):
 		self, board_squares: List[Square], possible_squares: List[Square], 
 		*directions: Direction
 		):
-		"""Add a move to the possible squares list."""
-		is_valid_move = True
-		total_direction_increment = 0
+		"""
+		Add a square to the possible squares list by adding up the directions. 
+		Keep in mind that this does not account for pieces on the way to said
+		square (like a knight). 
+		"""
+		kls = type(self)
+
+		horizontal_increment = 0
+		vertical_increment = 0
 
 		for direction in directions:
-			can_move, direction_increment = self._check_can_move(direction)
+			if direction in kls.HORIZONTAL_DIRECTIONS:
+				horizontal_increment += direction.value * self.color.value
+			elif direction in kls.VERTICAL_DIRECTIONS:
+				vertical_increment += direction.value * self.color.value
 
-			if not can_move:
-				# The piece can't move in that direction, render the move invalid.
-				is_valid_move = False
-			else:
-				# The piece can move in that direction, add it to the total.
-				total_direction_increment += direction_increment
+		horizontal_validity = self._check_can_move_horizontal(horizontal_increment)
+		vertical_validity = self._check_can_move_vertical(vertical_increment)
+
+		is_valid_move = horizontal_validity and vertical_validity
 
 		if is_valid_move:
-			new_square_index = self.square.index + total_direction_increment
+			total_increment = horizontal_increment + vertical_increment
+			new_square_index = self.square.index + total_increment
+
 			possible_squares.append(board_squares[new_square_index])
-
-	def _check_can_move(self, direction: Direction) -> Tuple[bool, int]:
-		"""Check if the piece can move in a specified direction."""
-		direction_increment = direction.value * self.color.value
-		kls = self.__class__
-
-		if direction in kls.HORIZONTAL_DIRECTIONS:
-			return self._check_can_move_horizontal(direction_increment), direction_increment
-		# It's either one of them but the elif statement makes it more explicit.
-		elif direction in kls.VERTICAL_DIRECTIONS:
-			return self._check_can_move_vertical(direction_increment), direction_increment
 
 	def _check_can_move_horizontal(self, direction_increment: int) -> bool:
 		"""Check if the piece can move in a certain horizontal direction."""
@@ -252,29 +250,6 @@ class Knight(BasePiece):
 
 	@highlight_squares
 	def get_possible_moves(self, board):
-		# squares = board.squares
-		# possible_squares = list()
-
-		# i = self.square.index
-		# f, b, r, l = self.get_directions()
-
-		# # Forward moves
-		# self.add_move(squares, possible_squares, 2*f + r)
-		# self.add_move(squares, possible_squares, 2*f + l)
-
-		# # Right moves
-		# self.add_move(squares, possible_squares, 2*r + f)
-		# self.add_move(squares, possible_squares, 2*r + b)
-
-		# # Back moves
-		# self.add_move(squares, possible_squares, 2*b + r)
-		# self.add_move(squares, possible_squares, 2*b + l)
-
-		# # Left moves
-		# self.add_move(squares, possible_squares, 2*l + f)
-		# self.add_move(squares, possible_squares, 2*l + b)
-
-		# return possible_squares
 		return []
 
 
