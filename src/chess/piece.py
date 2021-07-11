@@ -250,7 +250,31 @@ class Knight(BasePiece):
 
 	@highlight_squares
 	def get_possible_moves(self, board):
-		return []
+		possible_squares = list()
+
+		# Get directions
+		f = Direction.FORWARD
+		b = Direction.BACK
+		r = Direction.RIGHT
+		l = Direction.LEFT
+
+		# Forward moves
+		self.add_move(board.squares, possible_squares, f, f, r)
+		self.add_move(board.squares, possible_squares, f, f, l)
+
+		# Right moves
+		self.add_move(board.squares, possible_squares, r, r, f)
+		self.add_move(board.squares, possible_squares, r, r, b)
+
+		# Back moves
+		self.add_move(board.squares, possible_squares, b, b, r)
+		self.add_move(board.squares, possible_squares, b, b, l)
+
+		# Left moves
+		self.add_move(board.squares, possible_squares, l, l, f)
+		self.add_move(board.squares, possible_squares, l, l, b)
+
+		return possible_squares
 
 
 class Rook(BasePiece):
