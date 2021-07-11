@@ -4,7 +4,7 @@ if TYPE_CHECKING:
 	from .board import Board
 	from .square import Square
 
-from settings import ASSETS_DIR
+from settings import SOUND_DIR
 from .chess_constants import ChessColor
 from .piece import BasePiece, King, Pawn
 
@@ -13,7 +13,7 @@ mixer.init()
 
 
 class Move:
-	INVALID_MOVE_SOUND = mixer.Sound(ASSETS_DIR / 'invalid_move.wav')
+	INVALID_MOVE_SOUND = mixer.Sound(SOUND_DIR / 'invalid_move.wav')
 
 	def __init__(self, to: 'Square', moving_piece: 'BasePiece', occupying_piece: 'BasePiece'):
 		"""
@@ -62,6 +62,7 @@ class Move:
 
 	def make_move(self, board: 'Board', possible_squares: List['Square']) -> None:
 		"""Make the move on the board, if it is valid."""
+		# TODO: Return notation for the move.
 		if self.is_valid(board.move_turn, possible_squares):
 			# Check if a piece was captured
 			self._check_capture(board.pieces)
