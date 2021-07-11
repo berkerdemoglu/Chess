@@ -332,10 +332,14 @@ class Rook(BasePiece):
 				if self._check_can_move_vertical(fwd_increment):
 					move_square = squares[index + fwd_increment]
 
-					if board.get_piece_occupying_square(move_square) is not None:
-						generate_fwd = False
-					else:
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
 						possible_squares.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_squares.append(move_square)
+						generate_fwd = False
 
 			# Backward
 			if generate_bwd:
@@ -344,10 +348,14 @@ class Rook(BasePiece):
 				if self._check_can_move_vertical(bwd_increment):
 					move_square = squares[index + bwd_increment]
 
-					if board.get_piece_occupying_square(move_square) is not None:
-						generate_bwd = False
-					else:
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
 						possible_squares.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_squares.append(move_square)
+						generate_bwd = False
 
 			# Right
 			if generate_right:
@@ -356,10 +364,14 @@ class Rook(BasePiece):
 				if self._check_can_move_horizontal(right_increment):
 					move_square = squares[index + right_increment]
 
-					if board.get_piece_occupying_square(move_square) is not None:
-						generate_right = False
-					else:
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
 						possible_squares.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_squares.append(move_square)
+						generate_right = False
 
 			# Left
 			if generate_left:
@@ -368,10 +380,14 @@ class Rook(BasePiece):
 				if self._check_can_move_horizontal(left_increment):
 					move_square = squares[index + left_increment]
 
-					if board.get_piece_occupying_square(move_square) is not None:
-						generate_left = False
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
+						possible_squares.append(move_square)
 					else:
-						possible_squares.append(squares[index + left_increment])
+						if occupying_piece.color != self.color:
+							possible_squares.append(move_square)
+						generate_left = False
 
 		return possible_squares
 
