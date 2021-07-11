@@ -75,7 +75,7 @@ class ChessGame(Display):
 					self.dragged_piece.square.highlight(Square.CURRENT_SQUARE_HIGHLIGHT)
 
 					# Get possible squares the piece can move to.
-					self.possible_squares = self.dragged_piece.get_possible_moves(self.board.squares)
+					self.possible_squares = self.dragged_piece.get_possible_moves(self.board)
 			elif event.type == pg.MOUSEBUTTONUP:
 				# Release the piece being dragged if it exists.
 				if self.is_dragging:

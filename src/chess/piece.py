@@ -1,20 +1,31 @@
 # Type annotations
-from typing import List, Callable, Tuple
+from typing import List, Sequence, Tuple, Callable, TYPE_CHECKING
+if TYPE_CHECKING:
+	from .board import Board
 
+# Utility imports
 from abc import abstractmethod
 from functools import wraps
 
 import pygame as pg
 
-from .square import Square
-from .chess_constants import ChessColor
 from settings import PIECE_DIR
 from graphics import Renderable
 
+# Chess imports
+from .square import Square
+from .chess_constants import ChessColor, Direction
 
-############################
-######## DECORATORS ########
-############################
+
+__all__ = [
+	'BasePiece', 'Pawn', 'Bishop',
+	'Knight', 'Rook', 'Queen', 'King'
+]
+
+
+#############################
+######### UTILITIES #########
+#############################
 
 
 def highlight_squares(func: Callable):
@@ -35,7 +46,7 @@ def highlight_squares(func: Callable):
 ################################
 
 
-class PieceRenderable(Renderable):
+class RenderablePiece(Renderable):
 
 	def __init__(self, color: ChessColor, square: Square):
 		"""Initialize a piece with a color, square, and image and rect."""
@@ -43,6 +54,7 @@ class PieceRenderable(Renderable):
 		self.square = square
 
 		# Load image and get its rect
+		# P.S: the notation attribute is implemented later on, ignore this error
 		imagename = f"{'w' if self.color == ChessColor.LIGHT else 'b'}" \
 			f"{self.__class__.notation.lower()}.png"
 		self.image = pg.image.load(PIECE_DIR / imagename).convert_alpha()
@@ -75,23 +87,19 @@ class PieceRenderable(Renderable):
 		return str(self)
 
 
-class BasePiece(PieceRenderable):
+class BasePiece(RenderablePiece):
 	"""The base piece class. Represents a piece on the chessboard."""
 
-	# Dicts
+	# Constants
 	PIECE_DICT = {
 		'Pawn': 'p', 'Knight': 'n', 'Bishop': 'b',
 		'Rook': 'r', 'Queen': 'q', 'King': 'k'
 	}
 
-	# Directions for white. For black, just multiply them by -1.
-	DIRECTIONS = {
-		'forward': -8,
-		'back': 8,
-		'right': 1,
-		'left': -1
-	}
+	HORIZONTAL_DIRECTIONS = (Direction.LEFT, Direction.RIGHT)
+	VERTICAL_DIRECTIONS = (Direction.FORWARD, Direction.BACK)
 
+	# Class attributes
 	points: int  # how much the piece is worth
 	notation: str  # how the piece is represented in chess notation
 
@@ -102,24 +110,64 @@ class BasePiece(PieceRenderable):
 
 	# Chess-related methods
 	@abstractmethod
-	def get_possible_moves(self, squares: List[Square]) -> List[Square]:
+	def get_possible_moves(self, board: 'Board') -> List[Square]:
 		"""Get the valid squares the piece can move to."""
 		raise NotImplemented
 
-	def get_directions(self) -> Tuple[int, int, int, int]:
-		return self.get_forward(), self.get_back(), self.get_left(), self.get_right()
+	def add_move(
+		self, board_squares: List[Square], possible_squares: List[Square], 
+		*directions: Direction
+		):
+		"""Add a move to the possible squares list."""
+		is_valid_move = True
+		total_direction_increment = 0
 
-	def get_forward(self) -> int:
-		return BasePiece.DIRECTIONS['forward'] * self.color.value
+		for direction in directions:
+			can_move, direction_increment = self._check_can_move(direction)
 
-	def get_back(self) -> int:
-		return BasePiece.DIRECTIONS['back'] * self.color.value
+			if not can_move:
+				# The piece can't move in that direction, render the move invalid.
+				is_valid_move = False
+			else:
+				# The piece can move in that direction, add it to the total.
+				total_direction_increment += direction_increment
 
-	def get_left(self) -> int:
-		return BasePiece.DIRECTIONS['left'] * self.color.value
+		if is_valid_move:
+			new_square_index = self.square.index + total_direction_increment
+			possible_squares.append(board_squares[new_square_index])
 
-	def get_right(self) -> int:
-		return BasePiece.DIRECTIONS['right'] * self.color.value
+	def _check_can_move(self, direction: Direction) -> Tuple[bool, int]:
+		"""Check if the piece can move in a specified direction."""
+		direction_increment = direction.value * self.color.value
+		kls = self.__class__
+
+		if direction in kls.HORIZONTAL_DIRECTIONS:
+			return self._check_can_move_horizontal(direction_increment), direction_increment
+		# It's either one of them but the elif statement makes it more explicit.
+		elif direction in kls.VERTICAL_DIRECTIONS:
+			return self._check_can_move_vertical(direction_increment), direction_increment
+
+	def _check_can_move_horizontal(self, direction_increment: int) -> bool:
+		"""Check if the piece can move in a certain horizontal direction."""
+		i = self.square.index
+
+		row_current = i // 8
+		row_after = (i + direction_increment) // 8
+
+		if row_current != row_after:
+			# Piece cannot move in this direction any further
+			return False
+
+		return True
+
+	def _check_can_move_vertical(self, direction_increment: int) -> bool:
+		"""Check if the piece can move in a certain vertical direction."""
+		new_square_index = self.square.index + direction_increment
+
+		if new_square_index < 0 or new_square_index >= 64:
+			return False
+
+		return True
 
 
 ################################
@@ -137,10 +185,46 @@ class Pawn(BasePiece):
 		self.has_moved = False
 
 	@highlight_squares
-	def get_possible_moves(self, squares):
+	def get_possible_moves(self, board):
+		# TODO: Promotions
+		# TODO: En-passant
+
+		squares = board.squares
 		possible_squares = list()
-		forward = self.get_forward()
-		possible_squares.append(squares[self.square.index + forward])
+		i = self.square.index
+
+		# Get the forward direction increment
+		forward: int = Direction.FORWARD.value * self.color.value
+
+		# First of all, check if the pawn can move forward.
+		if self._check_can_move_vertical(forward):
+			# One square forward
+			move_square = squares[i + forward]
+			piece_in_front_of_me = board.get_piece_occupying_square(move_square)
+
+			if piece_in_front_of_me is None:
+				if self._check_can_move_vertical(forward):
+					possible_squares.append(move_square)
+
+			# Two squares forward
+			if not self.has_moved and piece_in_front_of_me is None:
+				possible_squares.append(squares[i + 2*forward])
+
+			# Get left and right directions to be used for captures
+			left: int = Direction.LEFT.value * self.color.value
+			right: int = Direction.RIGHT.value * self.color.value
+
+			# Left diagonal capture
+			if self._check_can_move_horizontal(left):
+				left_diagonal_capture_square = squares[i + forward + left]
+				if board.get_piece_occupying_square(left_diagonal_capture_square) is not None:
+					possible_squares.append(left_diagonal_capture_square)
+
+			# Right diagonal capture
+			if self._check_can_move_horizontal(right):
+				right_diagonal_capture_square = squares[i + forward + right]
+				if board.get_piece_occupying_square(right_diagonal_capture_square) is not None:
+					possible_squares.append(right_diagonal_capture_square)
 
 		return possible_squares
 
@@ -154,8 +238,8 @@ class Bishop(BasePiece):
 		super().__init__(*args, **kwargs)
 
 	@highlight_squares
-	def get_possible_moves(self, squares):
-		pass
+	def get_possible_moves(self, board):
+		return []
 
 
 class Knight(BasePiece):
@@ -167,8 +251,31 @@ class Knight(BasePiece):
 		super().__init__(*args, **kwargs)
 
 	@highlight_squares
-	def get_possible_moves(self, squares):
-		pass
+	def get_possible_moves(self, board):
+		# squares = board.squares
+		# possible_squares = list()
+
+		# i = self.square.index
+		# f, b, r, l = self.get_directions()
+
+		# # Forward moves
+		# self.add_move(squares, possible_squares, 2*f + r)
+		# self.add_move(squares, possible_squares, 2*f + l)
+
+		# # Right moves
+		# self.add_move(squares, possible_squares, 2*r + f)
+		# self.add_move(squares, possible_squares, 2*r + b)
+
+		# # Back moves
+		# self.add_move(squares, possible_squares, 2*b + r)
+		# self.add_move(squares, possible_squares, 2*b + l)
+
+		# # Left moves
+		# self.add_move(squares, possible_squares, 2*l + f)
+		# self.add_move(squares, possible_squares, 2*l + b)
+
+		# return possible_squares
+		return []
 
 
 class Rook(BasePiece):
@@ -180,8 +287,8 @@ class Rook(BasePiece):
 		super().__init__(*args, **kwargs)
 
 	@highlight_squares
-	def get_possible_moves(self, squares):
-		pass
+	def get_possible_moves(self, board):
+		return []
 
 
 class Queen(BasePiece):
@@ -193,8 +300,8 @@ class Queen(BasePiece):
 		super().__init__(*args, **kwargs)
 
 	@highlight_squares
-	def get_possible_moves(self, squares):
-		pass
+	def get_possible_moves(self, board):
+		return []
 
 
 class King(BasePiece):
@@ -202,9 +309,9 @@ class King(BasePiece):
 	notation = 'K'
 
 	def __init__(self, *args, **kwargs):
-		self._has_moved = False
+		self.has_moved = False
 		super().__init__(*args, **kwargs)
 
 	@highlight_squares
-	def get_possible_moves(self, squares):
-		pass
+	def get_possible_moves(self, board):
+		return []

@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 from settings import ASSETS_DIR
 from .chess_constants import ChessColor
-from .piece import BasePiece, King
+from .piece import BasePiece, King, Pawn
 
 from pygame import mixer
 mixer.init()
@@ -63,7 +63,13 @@ class Move:
 	def make_move(self, board: 'Board', possible_squares: List['Square']) -> None:
 		"""Make the move on the board, if it is valid."""
 		if self.is_valid(board.move_turn, possible_squares):
+			# Check if a piece was captured
 			self._check_capture(board.pieces)
+
+			# Check if the moving piece is a pawn or the king.
+			piece_type = type(self.moving_piece)
+			if piece_type == Pawn or piece_type == King:
+				self.moving_piece.has_moved = True
 
 			# Unhighlight the previous square
 			self.moving_piece.square.unhighlight()
