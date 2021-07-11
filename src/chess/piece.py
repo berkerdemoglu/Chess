@@ -1,5 +1,5 @@
 # Type annotations
-from typing import List, Sequence, Callable, TYPE_CHECKING
+from typing import List, Sequence, Callable, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
 	from .board import Board
 
@@ -167,31 +167,48 @@ class BasePiece(RenderablePiece):
 
 		return True
 
+	def get_directions(self) -> Tuple[Direction, Direction, Direction, Direction]:
+		"""Get the move directions in the order; Forward, back, right, left."""
+		return Direction.FORWARD, Direction.BACK, Direction.RIGHT, Direction.LEFT
+
+	def get_number_directions(self) -> Tuple[int, int, int, int]:
+		f = Direction.FORWARD.value * self.color.value
+		b = Direction.BACK.value * self.color.value
+		r = Direction.RIGHT.value * self.color.value
+		l = Direction.LEFT.value * self.color.value
+
+		return f, b, r, l 
+
 
 ################################
 ######### CHESS PIECES #########
 ################################
 
 
-class Pawn(BasePiece):
+class FirstMovePiece(BasePiece):
+	"""Pieces which the first move matters to them."""
+
+	def __init__(self, *args, **kwargs):
+		"""Initialize the piece with a boolean has_moved attribute."""
+		super().__init__(*args, **kwargs)
+		self.has_moved: bool = False
+
+
+class Pawn(FirstMovePiece):
 	"""Represents a pawn on the chessboard."""
 	points = 1
 	notation = 'P'
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.has_moved = False
-
 	@highlight_squares
 	def get_possible_moves(self, board):
+		"""Generate the possible moves for a pawn, including captures."""
 		# TODO: Promotions
 		# TODO: En-passant
-
 		squares = board.squares
 		possible_squares = list()
 		i = self.square.index
 
-		# Get the forward direction increment
+		# Get the forward direction value
 		forward: int = Direction.FORWARD.value * self.color.value
 
 		# First of all, check if the pawn can move forward.
@@ -208,7 +225,7 @@ class Pawn(BasePiece):
 			if not self.has_moved and piece_in_front_of_me is None:
 				possible_squares.append(squares[i + 2*forward])
 
-			# Get left and right directions to be used for captures
+			# Get left and right direction values to be used for captures
 			left: int = Direction.LEFT.value * self.color.value
 			right: int = Direction.RIGHT.value * self.color.value
 
@@ -227,16 +244,14 @@ class Pawn(BasePiece):
 		return possible_squares
 
 
-class Bishop(BasePiece):
-	"""Represents a bishop on the chessboard."""
-	points = 3
-	notation = 'B'
-
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
+class King(FirstMovePiece):
+	"""Represents a king on the chessboard."""
+	notation = 'K'
 
 	@highlight_squares
 	def get_possible_moves(self, board):
+		# TODO: Castling
+		# TODO: Checks (using the stack data structure)
 		return []
 
 
@@ -253,10 +268,7 @@ class Knight(BasePiece):
 		possible_squares = list()
 
 		# Get directions
-		f = Direction.FORWARD
-		b = Direction.BACK
-		r = Direction.RIGHT
-		l = Direction.LEFT
+		f, b, r, l = self.get_directions()
 
 		# Forward moves
 		self.add_move(board.squares, possible_squares, f, f, r)
@@ -277,6 +289,19 @@ class Knight(BasePiece):
 		return possible_squares
 
 
+class Bishop(BasePiece):
+	"""Represents a bishop on the chessboard."""
+	points = 3
+	notation = 'B'
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+	@highlight_squares
+	def get_possible_moves(self, board):
+		return []
+
+
 class Rook(BasePiece):
 	"""Represents a rook on the chessboard."""
 	points = 5
@@ -287,7 +312,68 @@ class Rook(BasePiece):
 
 	@highlight_squares
 	def get_possible_moves(self, board):
-		return []
+		"""Generate moves for a rook, keeping the blocking pieces in mind."""
+		# TODO, Optimization: use range(-7, 7) - generate backward and forward together
+		squares = board.squares
+		possible_squares = list()
+		index = self.square.index
+
+		# Get the directions with square index differences.
+		f, b, r, l = self.get_number_directions()
+
+		# Create flags to check if we should keep generating moves in that direction.
+		generate_fwd, generate_bwd, generate_right, generate_left = True, True, True, True
+
+		for i in range(1, 8):  # loop between 1-7
+			# Forward
+			if generate_fwd:
+				fwd_increment = f * i
+
+				if self._check_can_move_vertical(fwd_increment):
+					move_square = squares[index + fwd_increment]
+
+					if board.get_piece_occupying_square(move_square) is not None:
+						generate_fwd = False
+					else:
+						possible_squares.append(move_square)
+
+			# Backward
+			if generate_bwd:
+				bwd_increment = b * i
+
+				if self._check_can_move_vertical(bwd_increment):
+					move_square = squares[index + bwd_increment]
+
+					if board.get_piece_occupying_square(move_square) is not None:
+						generate_bwd = False
+					else:
+						possible_squares.append(move_square)
+
+			# Right
+			if generate_right:
+				right_increment = r * i
+
+				if self._check_can_move_horizontal(right_increment):
+					move_square = squares[index + right_increment]
+
+					if board.get_piece_occupying_square(move_square) is not None:
+						generate_right = False
+					else:
+						possible_squares.append(move_square)
+
+			# Left
+			if generate_left:
+				left_increment = l * i
+
+				if self._check_can_move_horizontal(left_increment):
+					move_square = squares[index + left_increment]
+
+					if board.get_piece_occupying_square(move_square) is not None:
+						generate_left = False
+					else:
+						possible_squares.append(squares[index + left_increment])
+
+		return possible_squares
 
 
 class Queen(BasePiece):
@@ -296,19 +382,6 @@ class Queen(BasePiece):
 	notation = 'Q'
 
 	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-	@highlight_squares
-	def get_possible_moves(self, board):
-		return []
-
-
-class King(BasePiece):
-	"""Represents a king on the chessboard."""
-	notation = 'K'
-
-	def __init__(self, *args, **kwargs):
-		self.has_moved = False
 		super().__init__(*args, **kwargs)
 
 	@highlight_squares
