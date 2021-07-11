@@ -7,5 +7,5 @@ class ChessColor(Enum):
 	LIGHT = 1
 
 	@classmethod
-	def negate(cls, chess_color: 'ChessColor'):
-		return cls.LIGHT if chess_color == cls.DARK else cls.DARK
+	def negate(cls, color: 'ChessColor'):
+		return cls(-color.value)
