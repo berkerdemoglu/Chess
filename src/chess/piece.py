@@ -3,12 +3,14 @@ from typing import List, Sequence, Callable, Tuple, TYPE_CHECKING
 if TYPE_CHECKING:
 	from .board import Board
 
-# Utility imports
+# Built-in utilities
 from abc import abstractmethod
 from functools import wraps
 
+# Pygame
 import pygame as pg
 
+# Settings and graphics imports
 from settings import PIECE_DIR
 from graphics import Renderable
 
@@ -17,6 +19,7 @@ from .square import Square
 from .chess_constants import ChessColor, Direction
 
 
+# Define what can be imported from this module.
 __all__ = [
 	'BasePiece', 'Pawn', 'Bishop',
 	'Knight', 'Rook', 'Queen', 'King'
@@ -32,11 +35,11 @@ def highlight_squares(func: Callable):
 	"""Return a method that returns a list of squares and highlights those squares."""
 	@wraps(func)
 	def wrapper(self, *args, **kwargs):
-		possible_squares = func(self, *args, **kwargs)
-		for square in possible_squares:
+		possible_moves = func(self, *args, **kwargs)
+		for square in possible_moves:
 			square.highlight(Square.VALID_MOVE_HIGHLIGHT)
 
-		return possible_squares
+		return possible_moves
 
 	return wrapper
 
@@ -47,6 +50,7 @@ def highlight_squares(func: Callable):
 
 
 class RenderablePiece(Renderable):
+	"""A class that handles the graphics of a chess piece."""
 
 	def __init__(self, color: ChessColor, square: Square):
 		"""Initialize a piece with a color, square, and image and rect."""
@@ -96,6 +100,7 @@ class BasePiece(RenderablePiece):
 		'Rook': 'r', 'Queen': 'q', 'King': 'k'
 	}
 
+	# Directions for move generation
 	HORIZONTAL_DIRECTIONS = (Direction.LEFT, Direction.RIGHT)
 	VERTICAL_DIRECTIONS = (Direction.FORWARD, Direction.BACK)
 
@@ -104,6 +109,7 @@ class BasePiece(RenderablePiece):
 	notation: str  # how the piece is represented in chess notation
 
 	def __init__(self, color: ChessColor, square: Square, surface: pg.Surface):
+		"""Center the piece on initialization."""
 		super().__init__(color, square)
 
 		self.center_in_square(surface)
@@ -115,7 +121,7 @@ class BasePiece(RenderablePiece):
 		raise NotImplemented
 
 	def add_move(
-		self, board_squares: List[Square], possible_squares: List[Square], 
+		self, board_squares: List[Square], possible_moves: List[Square], 
 		*directions: Direction
 		):
 		"""
@@ -143,14 +149,14 @@ class BasePiece(RenderablePiece):
 			total_increment = horizontal_increment + vertical_increment
 			new_square_index = self.square.index + total_increment
 
-			possible_squares.append(board_squares[new_square_index])
+			possible_moves.append(board_squares[new_square_index])
 
 	def _check_can_move_horizontal(self, direction_increment: int) -> bool:
 		"""Check if the piece can move in a certain horizontal direction."""
-		i = self.square.index
+		index = self.square.index
 
-		row_current = i // 8
-		row_after = (i + direction_increment) // 8
+		row_current = index // 8
+		row_after = (index + direction_increment) // 8
 
 		if row_current != row_after:
 			# Piece cannot move in this direction any further
@@ -173,6 +179,10 @@ class BasePiece(RenderablePiece):
 		return Direction.FORWARD, Direction.BACK, Direction.RIGHT, Direction.LEFT
 
 	def get_number_directions(self) -> Tuple[int, int, int, int]:
+		"""
+		Get the move directions as in square differences 
+		in the order; Forward, back, right, left.
+		"""
 		f = Direction.FORWARD.value * self.color.value
 		b = Direction.BACK.value * self.color.value
 		r = Direction.RIGHT.value * self.color.value
@@ -187,7 +197,7 @@ class BasePiece(RenderablePiece):
 
 
 class FirstMovePiece(BasePiece):
-	"""Pieces whose first moves are special."""
+	"""Pieces that have special first moves."""
 
 	def __init__(self, *args, **kwargs):
 		"""Initialize the piece with a boolean has_moved attribute."""
@@ -198,14 +208,14 @@ class FirstMovePiece(BasePiece):
 class Pawn(FirstMovePiece):
 	"""Represents a pawn on the chessboard."""
 	points = 1
-	notation = 'P'
+	notation = 'P'  # used for graphics
 
 	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate the possible moves for a pawn, including captures."""
 		# TODO: Promotions
 		# TODO: En-passant
-		possible_squares = list()
+		possible_moves = list()
 		i = self.square.index
 
 		# Get the forward direction value
@@ -219,11 +229,11 @@ class Pawn(FirstMovePiece):
 
 			if piece_in_front_of_me is None:
 				if self._check_can_move_vertical(forward):
-					possible_squares.append(move_square)
+					possible_moves.append(move_square)
 
 			# Two squares forward
 			if not self.has_moved and piece_in_front_of_me is None:
-				possible_squares.append(board.squares[i + 2*forward])
+				possible_moves.append(board.squares[i + 2*forward])
 
 			# Get left and right direction values to be used for captures
 			left: int = Direction.LEFT.value * self.color.value
@@ -235,7 +245,7 @@ class Pawn(FirstMovePiece):
 				occupying_piece = board.get_piece_occupying_square(capture_square)
 
 				if occupying_piece is not None and occupying_piece.color != self.color:
-					possible_squares.append(capture_square)
+					possible_moves.append(capture_square)
 
 			# Right diagonal capture
 			if self._check_can_move_horizontal(right):
@@ -243,9 +253,9 @@ class Pawn(FirstMovePiece):
 				occupying_piece = board.get_piece_occupying_square(capture_square)
 
 				if occupying_piece is not None and occupying_piece.color != self.color:
-					possible_squares.append(capture_square)
+					possible_moves.append(capture_square)
 
-		return possible_squares
+		return possible_moves
 
 
 class King(FirstMovePiece):
@@ -269,28 +279,28 @@ class Knight(BasePiece):
 	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate the possible moves for the piece."""
-		possible_squares = list()
+		possible_moves = list()
 
 		# Get directions
 		f, b, r, l = self.get_directions()
 
 		# Forward moves
-		self.add_move(board.squares, possible_squares, f, f, r)
-		self.add_move(board.squares, possible_squares, f, f, l)
+		self.add_move(board.squares, possible_moves, f, f, r)
+		self.add_move(board.squares, possible_moves, f, f, l)
 
 		# Right moves
-		self.add_move(board.squares, possible_squares, r, r, f)
-		self.add_move(board.squares, possible_squares, r, r, b)
+		self.add_move(board.squares, possible_moves, r, r, f)
+		self.add_move(board.squares, possible_moves, r, r, b)
 
 		# Back moves
-		self.add_move(board.squares, possible_squares, b, b, r)
-		self.add_move(board.squares, possible_squares, b, b, l)
+		self.add_move(board.squares, possible_moves, b, b, r)
+		self.add_move(board.squares, possible_moves, b, b, l)
 
 		# Left moves
-		self.add_move(board.squares, possible_squares, l, l, f)
-		self.add_move(board.squares, possible_squares, l, l, b)
+		self.add_move(board.squares, possible_moves, l, l, f)
+		self.add_move(board.squares, possible_moves, l, l, b)
 
-		return possible_squares
+		return possible_moves
 
 
 class Bishop(BasePiece):
@@ -317,7 +327,7 @@ class Rook(BasePiece):
 	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate moves for a rook, keeping the blocking pieces in mind."""
-		possible_squares = list()
+		possible_moves = list()
 		index = self.square.index
 
 		# Get the directions with square index differences.
@@ -337,10 +347,10 @@ class Rook(BasePiece):
 					occupying_piece = board.get_piece_occupying_square(move_square)
 
 					if occupying_piece is None:
-						possible_squares.append(move_square)
+						possible_moves.append(move_square)
 					else:
 						if occupying_piece.color != self.color:
-							possible_squares.append(move_square)
+							possible_moves.append(move_square)
 						generate_fwd = False
 
 			# Backward
@@ -353,10 +363,10 @@ class Rook(BasePiece):
 					occupying_piece = board.get_piece_occupying_square(move_square)
 
 					if occupying_piece is None:
-						possible_squares.append(move_square)
+						possible_moves.append(move_square)
 					else:
 						if occupying_piece.color != self.color:
-							possible_squares.append(move_square)
+							possible_moves.append(move_square)
 						generate_bwd = False
 
 			# Right
@@ -369,10 +379,10 @@ class Rook(BasePiece):
 					occupying_piece = board.get_piece_occupying_square(move_square)
 
 					if occupying_piece is None:
-						possible_squares.append(move_square)
+						possible_moves.append(move_square)
 					else:
 						if occupying_piece.color != self.color:
-							possible_squares.append(move_square)
+							possible_moves.append(move_square)
 						generate_right = False
 
 			# Left
@@ -385,13 +395,13 @@ class Rook(BasePiece):
 					occupying_piece = board.get_piece_occupying_square(move_square)
 
 					if occupying_piece is None:
-						possible_squares.append(move_square)
+						possible_moves.append(move_square)
 					else:
 						if occupying_piece.color != self.color:
-							possible_squares.append(move_square)
+							possible_moves.append(move_square)
 						generate_left = False
 
-		return possible_squares
+		return possible_moves
 
 
 class Queen(BasePiece):

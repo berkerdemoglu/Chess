@@ -2,6 +2,7 @@ from game import ChessGame
 
 
 def main():
+	"""Start the app."""
 	game = ChessGame()
 	game.start()
 

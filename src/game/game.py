@@ -7,13 +7,15 @@ if TYPE_CHECKING:
 from sys import exit as sysexit
 import pygame as pg
 
-# My modules
+# My utilities
 from graphics import Display
 from graphics.constants import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
 	BACKGROUND_COLOR, FPS
 )
 from utils import get_dragged_piece, get_release_square
+
+# Chess imports
 from chess import Board, Move, Square
 from fen_parser.board_parser import BoardParser
 
@@ -21,11 +23,11 @@ from fen_parser.board_parser import BoardParser
 class ChessGame(Display):
 	"""The class that represents the game."""
 
-	def __init__(self):
+	def __init__(self, fen_str: str = Board.DEFAULT_POSITION_FEN):
 		"""Initialize pygame, the screen and the board."""
 		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, FPS, BACKGROUND_COLOR)
 
-		self.board: Board = Board(self.screen)
+		self.board: Board = Board(self.screen, fen_str)
 		self.board_parser: BoardParser = BoardParser(self.board)
 
 		# Flags
@@ -38,11 +40,11 @@ class ChessGame(Display):
 			# Get the current occupant of the square to piece is trying to move to.
 			occupying_piece = self.board.get_piece_occupying_square(to_square)
 
-			# Create a move and make the move.
+			# Create a move and make it.
 			move = Move(to_square, self.dragged_piece, occupying_piece)
 			move.make_move(self.board, self.possible_squares)
 
-			# Delete now unnecessary objects to free up memory.
+			# Delete now useless objects to free up memory.
 			del move
 		else:
 			self.dragged_piece.square.unhighlight()

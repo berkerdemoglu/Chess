@@ -32,7 +32,7 @@ class Board:
 	"""Represents the chessboard."""
 	DEFAULT_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 	
-	def __init__(self, surface: pg.Surface):
+	def __init__(self, surface: pg.Surface, fen_str: str):
 		"""Initialize the chessboard."""
 		self.surface = surface
 		self.board_coordinates: List[BoardCoordinate]  # visual coordinates around the board
@@ -41,12 +41,12 @@ class Board:
 		self.pieces: List[BasePiece] = list()
 		self.move_turn: ChessColor = ChessColor.LIGHT
 
-		self._create_board()
+		self._create_board(fen_str)
 
-	def _create_board(self):
+	def _create_board(self, fen_str: str):
 		"""Create the chessboard with squares, pieces and coordinates around the board."""
 		self.squares = self._setup_squares()
-		self._setup_pieces()
+		self._setup_pieces(fen_str)
 		self.board_coordinates = self._setup_coordinates()
 
 	@staticmethod
@@ -65,9 +65,9 @@ class Board:
 
 		return squares
 
-	def _setup_pieces(self) -> None:
+	def _setup_pieces(self, fen_str: str) -> None:
 		"""Initialize the pieces on the chessboard."""
-		fen_parser = FENParser(self.surface, Board.DEFAULT_POSITION_FEN, self)
+		fen_parser = FENParser(self.surface, fen_str, self)
 		fen_parser.parse()
 
 	def _setup_coordinates(self) -> List[BoardCoordinate]:
