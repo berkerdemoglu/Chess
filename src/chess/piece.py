@@ -167,7 +167,8 @@ class BasePiece(RenderablePiece):
 
 		return True
 
-	def get_directions(self) -> Tuple[Direction, Direction, Direction, Direction]:
+	@staticmethod
+	def get_directions() -> Tuple[Direction, Direction, Direction, Direction]:
 		"""Get the move directions in the order; Forward, back, right, left."""
 		return Direction.FORWARD, Direction.BACK, Direction.RIGHT, Direction.LEFT
 
@@ -186,7 +187,7 @@ class BasePiece(RenderablePiece):
 
 
 class FirstMovePiece(BasePiece):
-	"""Pieces which the first move matters to them."""
+	"""Pieces whose first moves are special."""
 
 	def __init__(self, *args, **kwargs):
 		"""Initialize the piece with a boolean has_moved attribute."""
@@ -204,7 +205,6 @@ class Pawn(FirstMovePiece):
 		"""Generate the possible moves for a pawn, including captures."""
 		# TODO: Promotions
 		# TODO: En-passant
-		squares = board.squares
 		possible_squares = list()
 		i = self.square.index
 
@@ -214,7 +214,7 @@ class Pawn(FirstMovePiece):
 		# First of all, check if the pawn can move forward.
 		if self._check_can_move_vertical(forward):
 			# One square forward
-			move_square = squares[i + forward]
+			move_square = board.squares[i + forward]
 			piece_in_front_of_me = board.get_piece_occupying_square(move_square)
 
 			if piece_in_front_of_me is None:
@@ -223,7 +223,7 @@ class Pawn(FirstMovePiece):
 
 			# Two squares forward
 			if not self.has_moved and piece_in_front_of_me is None:
-				possible_squares.append(squares[i + 2*forward])
+				possible_squares.append(board.squares[i + 2*forward])
 
 			# Get left and right direction values to be used for captures
 			left: int = Direction.LEFT.value * self.color.value
@@ -231,15 +231,19 @@ class Pawn(FirstMovePiece):
 
 			# Left diagonal capture
 			if self._check_can_move_horizontal(left):
-				left_diagonal_capture_square = squares[i + forward + left]
-				if board.get_piece_occupying_square(left_diagonal_capture_square) is not None:
-					possible_squares.append(left_diagonal_capture_square)
+				capture_square = board.squares[i + forward + left]
+				occupying_piece = board.get_piece_occupying_square(capture_square)
+
+				if occupying_piece is not None and occupying_piece.color != self.color:
+					possible_squares.append(capture_square)
 
 			# Right diagonal capture
 			if self._check_can_move_horizontal(right):
-				right_diagonal_capture_square = squares[i + forward + right]
-				if board.get_piece_occupying_square(right_diagonal_capture_square) is not None:
-					possible_squares.append(right_diagonal_capture_square)
+				capture_square = board.squares[i + forward + right]
+				occupying_piece = board.get_piece_occupying_square(capture_square)
+
+				if occupying_piece is not None and occupying_piece.color != self.color:
+					possible_squares.append(capture_square)
 
 		return possible_squares
 
@@ -251,7 +255,6 @@ class King(FirstMovePiece):
 	@highlight_squares
 	def get_possible_moves(self, board):
 		# TODO: Castling
-		# TODO: Checks (using the stack data structure)
 		return []
 
 
@@ -265,6 +268,7 @@ class Knight(BasePiece):
 
 	@highlight_squares
 	def get_possible_moves(self, board):
+		"""Generate the possible moves for the piece."""
 		possible_squares = list()
 
 		# Get directions
@@ -313,8 +317,6 @@ class Rook(BasePiece):
 	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate moves for a rook, keeping the blocking pieces in mind."""
-		# TODO, Optimization: use range(-7, 7) - generate backward and forward together
-		squares = board.squares
 		possible_squares = list()
 		index = self.square.index
 
@@ -327,10 +329,10 @@ class Rook(BasePiece):
 		for i in range(1, 8):  # loop between 1-7
 			# Forward
 			if generate_fwd:
-				fwd_increment = f * i
+				fwd_increment = f*i
 
 				if self._check_can_move_vertical(fwd_increment):
-					move_square = squares[index + fwd_increment]
+					move_square = board.squares[index + fwd_increment]
 
 					occupying_piece = board.get_piece_occupying_square(move_square)
 
@@ -343,10 +345,10 @@ class Rook(BasePiece):
 
 			# Backward
 			if generate_bwd:
-				bwd_increment = b * i
+				bwd_increment = b*i
 
 				if self._check_can_move_vertical(bwd_increment):
-					move_square = squares[index + bwd_increment]
+					move_square = board.squares[index + bwd_increment]
 
 					occupying_piece = board.get_piece_occupying_square(move_square)
 
@@ -359,10 +361,10 @@ class Rook(BasePiece):
 
 			# Right
 			if generate_right:
-				right_increment = r * i
+				right_increment = r*i
 
 				if self._check_can_move_horizontal(right_increment):
-					move_square = squares[index + right_increment]
+					move_square = board.squares[index + right_increment]
 
 					occupying_piece = board.get_piece_occupying_square(move_square)
 
@@ -375,10 +377,10 @@ class Rook(BasePiece):
 
 			# Left
 			if generate_left:
-				left_increment = l * i
+				left_increment = l*i
 
 				if self._check_can_move_horizontal(left_increment):
-					move_square = squares[index + left_increment]
+					move_square = board.squares[index + left_increment]
 
 					occupying_piece = board.get_piece_occupying_square(move_square)
 

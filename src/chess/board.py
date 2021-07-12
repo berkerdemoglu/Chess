@@ -1,10 +1,12 @@
 # Type annotations
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import pygame as pg
 
 from graphics import Renderable
 from utils import point_in_rect
+
+# Chess stuff
 from .piece import BasePiece
 from .square import Square
 from fen_parser.fen_parser import FENParser
@@ -107,17 +109,27 @@ class Board:
 			if point_in_rect(x, y, piece.rect):
 				return piece
 
-	def get_piece_occupying_square(self, square: Square) -> BasePiece:
+	def get_piece_occupying_square(self, square: Square) -> Union[BasePiece, None]:
 		"""Get a piece from the board occupying the specified square."""
 		for piece in self.pieces:
 			if piece.square == square:
 				return piece
+
+		return None  # not required, but it does make it explicit
 
 	def render(self, dragged_piece: BasePiece):
 		"""Render the chessboard."""
 		# Render the squares
 		for square in self.squares:
 			square.render(self.surface)
+
+			# Draw the coordinates
+			# TODO: this is for debugging, remove before commit
+			label = Square.SQUARE_FONT.render(str(square.index), True, Square.SQUARE_FONT_COLOR)
+			coords = square.get_pos(self.surface)
+			x = coords[0] + Square.SQUARE_SIZE - 20
+			y = coords[1] + Square.SQUARE_SIZE - 20
+			self.surface.blit(label, (x, y))
 
 		# Render the coordinates
 		for coord in self.board_coordinates:
@@ -127,6 +139,7 @@ class Board:
 		for piece in self.pieces:
 			if piece != dragged_piece:
 				piece.render(self.surface)
+
 		# Render the piece being dragged last so that its on top of the other pieces
 		if dragged_piece is not None:
 			dragged_piece.render(self.surface)
