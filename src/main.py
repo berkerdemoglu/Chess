@@ -1,4 +1,4 @@
-from game import ChessGame, Launcher
+from game import ChessGame, Launcher, LAUNCHER_FEN_KEY
 
 
 def main():
@@ -6,9 +6,8 @@ def main():
 	launcher = Launcher()
 	launcher.start_launcher()
 
-	# TODO: Uncomment before committing
-	# game = ChessGame()
-	# game.start()
+	game = ChessGame(launcher.get(LAUNCHER_FEN_KEY))
+	game.start()
 
 
 if __name__ == '__main__':

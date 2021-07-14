@@ -1,5 +1,5 @@
 # Type annotations
-from typing import Dict, Callable, TYPE_CHECKING
+from typing import Callable, TYPE_CHECKING
 if TYPE_CHECKING:
 	from game import LauncherWindow
 
@@ -23,8 +23,8 @@ class FENEntry(tk.Entry, DrawableMixin):
 	def draw_widget(self):
 		self.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
 
-	def set_fen(self, launcher_dict: Dict) -> str:
-		launcher_dict['FEN'] = str(self.get())
+	def get_fen(self) -> str:
+		return str(self.get())
 
 
 class FENResetButton(tk.Button, DrawableMixin):
@@ -40,16 +40,13 @@ class FENResetButton(tk.Button, DrawableMixin):
 class FENFrame(tk.LabelFrame, DrawableMixin):
 	"""The frame that holds widgets related to FEN."""
 
-	def __init__(self, root: 'LauncherWindow', launcher_dict: Dict):
+	def __init__(self, root: 'LauncherWindow'):
 		# Tkinter
 		super(FENFrame, self).__init__(
 				root, text='Starting Position FEN', padx=10, pady=10, font=LS.FONT,
 				bg=LS.BG_COLOR, fg=LS.FG_COLOR
 			)
 		DrawableMixin.__init__(self, root)
-
-		# Keep a reference of the launcher dictionary here.
-		self.launcher_dict = launcher_dict
 
 		# Widgets
 		self.fen_entry = FENEntry(self)
@@ -61,3 +58,6 @@ class FENFrame(tk.LabelFrame, DrawableMixin):
 		# Draw the frame's widgets
 		# Important: All widgets inside FENFrame must use gridding
 		self.fen_entry.draw_widget()
+
+	def get_fen(self):
+		return self.fen_entry.get_fen()
