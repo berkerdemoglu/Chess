@@ -30,7 +30,8 @@ LAUNCHER_SETTINGS = SimpleNamespace(
 		BG_COLOR="#c0c0c0",  # background color
 		FG_COLOR="#323031",  # text color
 		FONT=('Segoe UI', 14),  # font for normal texts
-		H_FONT=('Aharoni', 22)  # font for headings
+		H_FONT=('Aharoni', 22),  # font for headings
+		SMALL_BUTTON_FONT=('Segoe UI', 10)  # font for small buttons
 	)
 
 # Launcher GUI settings for Mac OS
