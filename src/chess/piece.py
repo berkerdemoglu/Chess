@@ -94,7 +94,8 @@ class RenderablePiece(Renderable):
 
 class BasePiece(RenderablePiece):
 	"""The base piece class. Represents a piece on the chessboard."""
-	# TODO: Write a method for relocating a piece.
+	# TODO: Instead of storing a reference for a piece's square,
+	# store a piece reference in every square.
 
 	# Constants
 	PIECE_DICT = {
@@ -117,6 +118,12 @@ class BasePiece(RenderablePiece):
 		self.center_in_square(surface)
 
 	# Chess-related methods
+	def move_piece(self, move_square: Square, surface: pg.Surface) -> None:
+		"""Relocate the piece to a new square and center the piece's rect."""
+		self.square = move_square
+
+		self.center_in_square(surface)
+
 	@abstractmethod
 	def get_possible_moves(self, board: 'Board') -> List[Square]:
 		"""Get the valid squares the piece can move to."""
@@ -235,7 +242,10 @@ class Pawn(FirstMovePiece):
 
 			# Two squares forward
 			if not self.has_moved and piece_in_front_of_me is None:
-				possible_moves.append(board.squares[i + 2*forward])
+				move_square = board.squares[i + 2*forward]
+
+				if board.get_piece_occupying_square(move_square) is None:
+					possible_moves.append(move_square)
 
 			# Get left and right direction values to be used for captures
 			left: int = Direction.LEFT.value * self.color.value

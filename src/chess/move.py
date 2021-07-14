@@ -101,8 +101,7 @@ class Move:
 						)
 
 					# Move the rook
-					queenside_rook.square = board.squares[index + l_inc]
-					queenside_rook.center_in_square(board.surface)
+					queenside_rook.move_piece(board.squares[index + l_inc], board.surface)
 				elif index_difference == r_inc*2:
 					# The king is castling kingside, get the kingside rook
 					kr_square_index = index + r_inc*3
@@ -111,8 +110,7 @@ class Move:
 						)
 
 					# Move the rook
-					kingside_rook.square = board.squares[index + r_inc]
-					kingside_rook.center_in_square(board.surface)
+					kingside_rook.move_piece(board.squares[index + r_inc], board.surface)
 
 			# Check if the moving piece is of type 'FirstMovePiece'.
 			self._check_first_move_piece(piece_type)
