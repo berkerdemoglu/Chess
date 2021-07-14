@@ -6,8 +6,9 @@ def main():
 	launcher = Launcher()
 	launcher.start_launcher()
 
-	game = ChessGame()
-	game.start()
+	# TODO: Uncomment before committing
+	# game = ChessGame()
+	# game.start()
 
 
 if __name__ == '__main__':

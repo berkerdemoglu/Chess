@@ -25,5 +25,7 @@ SOUND_DIR = ASSETS_DIR / 'sounds'
 LAUNCHER_SETTINGS = SimpleNamespace(
 		TITLE='Chess Launcher',
 		DIMENSIONS="720x540",
-		BG_COLOR="#c0c0c0"
+		BG_COLOR="#c0c0c0",
+		FG_COLOR="#323031",
+		FONT=('Segoe UI', 14)
 	)
