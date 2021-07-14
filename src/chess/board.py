@@ -133,27 +133,19 @@ class Board:
 
 	def render(self, dragged_piece: BasePiece):
 		"""Render the chessboard."""
-		# Render the squares
+		# Render the squares.
 		for square in self.squares:
 			square.render(self.surface)
 
-			# Draw the coordinates
-			# TODO: this is for debugging, remove before commit
-			label = Square.SQUARE_FONT.render(str(square.index), True, Square.SQUARE_FONT_COLOR)
-			coords = square.get_pos(self.surface)
-			x = coords[0] + Square.SQUARE_SIZE - 20
-			y = coords[1] + Square.SQUARE_SIZE - 20
-			self.surface.blit(label, (x, y))
-
-		# Render the coordinates
+		# Render the coordinates.
 		for coord in self.board_coordinates:
 			coord.render(self.surface)
 
-		# Render the pieces
+		# Render the pieces.
 		for piece in self.pieces:
 			if piece != dragged_piece:
 				piece.render(self.surface)
 
-		# Render the piece being dragged last so that its on top of the other pieces
+		# Render the piece being dragged last so that its on top of the other pieces.
 		if dragged_piece is not None:
 			dragged_piece.render(self.surface)
