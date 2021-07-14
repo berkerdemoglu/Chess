@@ -85,7 +85,7 @@ class RenderablePiece(Renderable):
 	def __str__(self):
 		"""String representation of a piece."""
 		colorname = 'Light' if self.color == ChessColor.LIGHT else 'Dark'
-		return f'{colorname} {self.__class__.__name__} on {self.square.coordinates}'
+		return f'{colorname} {self.__class__} on {self.square.coordinates}'
 
 	def __repr__(self):
 		return str(self)
@@ -129,7 +129,7 @@ class BasePiece(RenderablePiece):
 		Keep in mind that this does not account for pieces on the way to said
 		square (like a knight). 
 		"""
-		kls = type(self)
+		kls = self.__class__
 
 		horizontal_increment = 0
 		vertical_increment = 0
@@ -215,7 +215,7 @@ class Pawn(FirstMovePiece):
 		"""Generate the possible moves for a pawn, including captures."""
 		# TODO: Promotions
 		# TODO: En-passant
-		possible_moves = list()
+		possible_moves = []
 		i = self.square.index
 
 		# Get the forward direction value
@@ -279,7 +279,7 @@ class Knight(BasePiece):
 	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate the possible moves for the piece."""
-		possible_moves = list()
+		possible_moves = []
 
 		# Get directions
 		f, b, r, l = self.get_directions()
@@ -327,7 +327,7 @@ class Rook(BasePiece):
 	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate moves for a rook, keeping the blocking pieces in mind."""
-		possible_moves = list()
+		possible_moves = []
 		index = self.square.index
 
 		# Get the directions with square index differences.
