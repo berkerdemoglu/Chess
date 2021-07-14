@@ -1,26 +1,14 @@
 # Type annotations
-from typing import Dict, Callable
-
-from abc import ABC, abstractmethod
+from typing import Callable
 
 # GUI stuff
 import tkinter as tk
 from settings import LAUNCHER_SETTINGS as LS
 
-from chess import Board
+from .drawable import DrawableMixin
+from .fen_gui import FENFrame
 
-
-class DrawableMixin(ABC):  # TODO: rename to 'WidgetMixin'
-	"""An abstract base class for widgets."""
-
-	def __init__(self, window):
-		"""Initialize the widget's window attribute."""
-		self.window = window
-
-	@abstractmethod
-	def draw_widget(self) -> None:
-		"""Draw the widget on the screen."""
-		raise NotImplemented
+from chess import Board  # for default FEN
 
 
 class StartButton(tk.Button, DrawableMixin):
@@ -62,58 +50,6 @@ class LauncherWindow(tk.Tk, DrawableMixin):
 	# Commands
 	def cmd_start(self):
 		pass
-
-
-class FENEntry(tk.Entry, DrawableMixin):
-
-	def __init__(self, frame: tk.LabelFrame):
-		super(FENEntry, self).__init__(frame, width=100, borderwidth=10)
-		DrawableMixin.__init__(self, frame)
-
-		# Insert default FEN
-		self.insert(tk.END, Board.DEFAULT_POSITION_FEN)
-
-	def draw_widget(self):
-		self.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
-
-	def set_fen(self, launcher_dict: Dict) -> str:
-		launcher_dict['FEN'] = str(self.get())
-
-
-class FENResetButton(tk.Button, DrawableMixin):
-
-	def __init__(self, frame: tk.LabelFrame, command: Callable):
-		super(FENButton, self).__init__(frame)
-		DrawableMixin.__init__(self, frame)  # self.window initialized
-
-	def draw_widget(self):
-		pass
-
-
-class FENFrame(tk.LabelFrame, DrawableMixin):
-	"""The frame that holds widgets related to FEN."""
-
-	def __init__(self, root: LauncherWindow, launcher_dict: Dict):
-		# Tkinter
-		super(FENFrame, self).__init__(
-				root, text='Starting Position FEN', padx=10, pady=10, font=LS.FONT,
-				bg=LS.BG_COLOR, fg=LS.FG_COLOR
-			)
-		DrawableMixin.__init__(self, root)
-
-		# Keep a reference of the launcher dictionary here.
-		self.launcher_dict = launcher_dict
-
-		# Widgets
-		self.fen_entry = FENEntry(self)
-
-	def draw_widget(self):
-		# Draw the frame first
-		self.pack(anchor='center', padx=10, pady=10)
-
-		# Draw the frame's widgets
-		# Important: All widgets inside FENFrame must use gridding
-		self.fen_entry.draw_widget()
 
 
 class Launcher:
