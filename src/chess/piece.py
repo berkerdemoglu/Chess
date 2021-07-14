@@ -32,7 +32,8 @@ __all__ = [
 
 
 def highlight_squares(func: Callable):
-	"""Return a method that returns a list of squares and highlights those squares."""
+	"""Highlights a list of squares."""
+
 	@wraps(func)
 	def wrapper(self, *args, **kwargs):
 		possible_moves = func(self, *args, **kwargs)
@@ -273,9 +274,6 @@ class Knight(BasePiece):
 	points = 3
 	notation = 'N'
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
 	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate the possible moves for the piece."""
@@ -308,21 +306,91 @@ class Bishop(BasePiece):
 	points = 3
 	notation = 'B'
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
 	@highlight_squares
 	def get_possible_moves(self, board):
-		return []
+		possible_moves = []
+		index = self.square.index
+
+		# Get the directions with square index differences.
+		f, b, r, l = self.get_number_directions()
+
+		# Create flags to check if we should keep generating moves in that direction.
+		generate_rf, generate_rb, generate_lf, generate_lb = True, True, True, True
+
+		for i in range(1, 8):  # loop between 1-7
+			f_increment = f*i
+			b_increment = b*i
+			r_increment = r*i
+			l_increment = l*i
+
+			can_move_f = self._check_can_move_vertical(f_increment)
+			can_move_b = self._check_can_move_vertical(b_increment)
+			can_move_r = self._check_can_move_horizontal(r_increment)
+			can_move_l = self._check_can_move_horizontal(l_increment)
+
+			# Right forward
+			if generate_rf:
+				if can_move_r and can_move_f:
+					move_square = board.squares[index + r_increment + f_increment]
+
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
+						possible_moves.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_moves.append(move_square)
+						generate_rf = False
+
+			# Right backward
+			if generate_rb:
+				if can_move_r and can_move_b:
+					move_square = board.squares[index + r_increment + b_increment]
+
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
+						possible_moves.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_moves.append(move_square)
+						generate_rb = False
+
+			# Left forward
+			if generate_lf:
+				if can_move_l and can_move_f:
+					move_square = board.squares[index + l_increment + f_increment]
+
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
+						possible_moves.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_moves.append(move_square)
+						generate_lf = False
+
+			# Left backward
+			if generate_lb:
+				if can_move_l and can_move_b:
+					move_square = board.squares[index + l_increment + b_increment]
+
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
+						possible_moves.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_moves.append(move_square)
+						generate_lb = False
+
+		return possible_moves
 
 
 class Rook(BasePiece):
 	"""Represents a rook on the chessboard."""
 	points = 5
 	notation = 'R'
-
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
 
 	@highlight_squares
 	def get_possible_moves(self, board):
@@ -404,14 +472,14 @@ class Rook(BasePiece):
 		return possible_moves
 
 
-class Queen(BasePiece):
+class Queen(Bishop, Rook):
 	"""Represents a queen on the chessboard."""
 	points = 9
 	notation = 'Q'
 
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
 	@highlight_squares
 	def get_possible_moves(self, board):
-		return []
+		bishop_moves = Bishop.get_possible_moves(self, board)
+		rook_moves = Rook.get_possible_moves(self, board)
+
+		return bishop_moves + rook_moves
