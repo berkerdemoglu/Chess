@@ -94,6 +94,7 @@ class RenderablePiece(Renderable):
 
 class BasePiece(RenderablePiece):
 	"""The base piece class. Represents a piece on the chessboard."""
+	# TODO: Write a method for relocating a piece.
 
 	# Constants
 	PIECE_DICT = {
@@ -144,9 +145,9 @@ class BasePiece(RenderablePiece):
 		horizontal_validity = self._check_can_move_horizontal(horizontal_increment)
 		vertical_validity = self._check_can_move_vertical(vertical_increment)
 
-		is_valid_move = horizontal_validity and vertical_validity
+		can_move_there = horizontal_validity and vertical_validity
 
-		if is_valid_move:
+		if can_move_there:
 			total_increment = horizontal_increment + vertical_increment
 			new_square_index = self.square.index + total_increment
 
@@ -259,14 +260,181 @@ class Pawn(FirstMovePiece):
 		return possible_moves
 
 
+class Rook(FirstMovePiece):
+	"""Represents a rook on the chessboard."""
+	points = 5
+	notation = 'R'
+
+	@highlight_squares
+	def get_possible_moves(self, board):
+		"""Generate moves for a rook, keeping the blocking pieces in mind."""
+		possible_moves = []
+		index = self.square.index
+
+		# Get the directions with square index differences.
+		f, b, r, l = self.get_number_directions()
+
+		# Create flags to check if we should keep generating moves in that direction.
+		generate_fwd, generate_bwd, generate_right, generate_left = True, True, True, True
+
+		for i in range(1, 8):  # loop between 1-7
+			# Forward
+			if generate_fwd:
+				fwd_increment = f*i
+
+				if self._check_can_move_vertical(fwd_increment):
+					move_square = board.squares[index + fwd_increment]
+
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
+						possible_moves.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_moves.append(move_square)
+						generate_fwd = False
+
+			# Backward
+			if generate_bwd:
+				bwd_increment = b*i
+
+				if self._check_can_move_vertical(bwd_increment):
+					move_square = board.squares[index + bwd_increment]
+
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
+						possible_moves.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_moves.append(move_square)
+						generate_bwd = False
+
+			# Right
+			if generate_right:
+				right_increment = r*i
+
+				if self._check_can_move_horizontal(right_increment):
+					move_square = board.squares[index + right_increment]
+
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
+						possible_moves.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_moves.append(move_square)
+						generate_right = False
+
+			# Left
+			if generate_left:
+				left_increment = l*i
+
+				if self._check_can_move_horizontal(left_increment):
+					move_square = board.squares[index + left_increment]
+
+					occupying_piece = board.get_piece_occupying_square(move_square)
+
+					if occupying_piece is None:
+						possible_moves.append(move_square)
+					else:
+						if occupying_piece.color != self.color:
+							possible_moves.append(move_square)
+						generate_left = False
+
+		return possible_moves
+
+
 class King(FirstMovePiece):
 	"""Represents a king on the chessboard."""
 	notation = 'K'
 
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
 	@highlight_squares
 	def get_possible_moves(self, board):
-		# TODO: Castling
-		return []
+		possible_moves = []
+
+		# Get directions
+		f, b, r, l = self.get_directions()
+		f_num, b_num, r_num, l_num = self.get_number_directions()
+
+		# Forward moves
+		self.add_move(board.squares, possible_moves, f)
+		self.add_move(board.squares, possible_moves, f, r)
+		self.add_move(board.squares, possible_moves, f, l)
+
+		# Backward moves
+		self.add_move(board.squares, possible_moves, b)
+		self.add_move(board.squares, possible_moves, b, r)
+		self.add_move(board.squares, possible_moves, b, l)
+
+		# Horizontal moves
+		self.add_move(board.squares, possible_moves, r)
+		self.add_move(board.squares, possible_moves, l)
+
+		# Castling moves - The rook will be moved in the 'Move' class.
+		if not self.has_moved:
+			# Queenside castling
+			if self.can_castle_queenside(board):
+				self.add_move(board.squares, possible_moves, l, l)
+
+			# Kingside castling
+			if self.can_castle_kingside(board):
+				self.add_move(board.squares, possible_moves, r, r)
+
+		return possible_moves
+
+	def can_castle_queenside(self, board: 'Board') -> bool:
+		# If there are pieces in the way, cancel move generation.
+		l = Direction.LEFT.value * self.color.value
+		index = self.square.index
+
+		for i in range(1, 4):  # loops between 1-3
+			l_increment = l*i
+			next_square = board.squares[index + l_increment]
+			if board.get_piece_occupying_square(next_square) is not None:
+				# There are pieces in the way, cannot castle.
+				return False
+
+		# 4 squares left
+		return self._can_castle(board, 4*l)
+
+	def can_castle_kingside(self, board: 'Board') -> bool:
+		# If there are pieces in the way, cancel move generation.
+		r = Direction.RIGHT.value * self.color.value
+		index = self.square.index
+
+		for i in range(1, 3):  # loops between 1-2
+			r_increment = r*i
+			next_square = board.squares[index + r_increment]
+			if board.get_piece_occupying_square(next_square) is not None:
+				# There are pieces in the way, cannot castle.
+				return False
+
+		# 3 squares right
+		return self._can_castle(board, 3 * Direction.RIGHT.value * self.color.value)
+
+	def _can_castle(self, board: 'Board', increment: int) -> bool:
+		# Get the rook to castle with.
+		rook_square = board.squares[self.square.index + increment]
+		rook = board.get_piece_occupying_square(rook_square)
+
+		if not rook.__class__ == Rook:
+			# The piece is not even a rook
+			return False
+
+		if rook is not None:
+			if not rook.has_moved:
+				# The rook hasn't moved, we can castle.
+				return True
+			else:
+				# The rook has moved, we cannot castle.
+				return False
+		else:
+			# The rook is not where it should be to castle!
+			return False
 
 
 class Knight(BasePiece):
@@ -383,91 +551,6 @@ class Bishop(BasePiece):
 						if occupying_piece.color != self.color:
 							possible_moves.append(move_square)
 						generate_lb = False
-
-		return possible_moves
-
-
-class Rook(BasePiece):
-	"""Represents a rook on the chessboard."""
-	points = 5
-	notation = 'R'
-
-	@highlight_squares
-	def get_possible_moves(self, board):
-		"""Generate moves for a rook, keeping the blocking pieces in mind."""
-		possible_moves = []
-		index = self.square.index
-
-		# Get the directions with square index differences.
-		f, b, r, l = self.get_number_directions()
-
-		# Create flags to check if we should keep generating moves in that direction.
-		generate_fwd, generate_bwd, generate_right, generate_left = True, True, True, True
-
-		for i in range(1, 8):  # loop between 1-7
-			# Forward
-			if generate_fwd:
-				fwd_increment = f*i
-
-				if self._check_can_move_vertical(fwd_increment):
-					move_square = board.squares[index + fwd_increment]
-
-					occupying_piece = board.get_piece_occupying_square(move_square)
-
-					if occupying_piece is None:
-						possible_moves.append(move_square)
-					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
-						generate_fwd = False
-
-			# Backward
-			if generate_bwd:
-				bwd_increment = b*i
-
-				if self._check_can_move_vertical(bwd_increment):
-					move_square = board.squares[index + bwd_increment]
-
-					occupying_piece = board.get_piece_occupying_square(move_square)
-
-					if occupying_piece is None:
-						possible_moves.append(move_square)
-					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
-						generate_bwd = False
-
-			# Right
-			if generate_right:
-				right_increment = r*i
-
-				if self._check_can_move_horizontal(right_increment):
-					move_square = board.squares[index + right_increment]
-
-					occupying_piece = board.get_piece_occupying_square(move_square)
-
-					if occupying_piece is None:
-						possible_moves.append(move_square)
-					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
-						generate_right = False
-
-			# Left
-			if generate_left:
-				left_increment = l*i
-
-				if self._check_can_move_horizontal(left_increment):
-					move_square = board.squares[index + left_increment]
-
-					occupying_piece = board.get_piece_occupying_square(move_square)
-
-					if occupying_piece is None:
-						possible_moves.append(move_square)
-					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
-						generate_left = False
 
 		return possible_moves
 

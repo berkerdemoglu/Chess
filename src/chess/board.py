@@ -97,11 +97,15 @@ class Board:
 		return coordinates
 
 	# Getters
+	# TODO: Use binary search since the data is sorted
+	# TODO: Or, use dictionaries
 	def get_square_by_coords(self, x: int, y: int):
-		"""Get a square from the board with the specified coordinates."""
+		"""Get a square from the board with the specified x, y coordinates."""
 		for square in self.squares:
 			if point_in_rect(x, y, square.get_rect(self.surface)):
 				return square
+
+		return None  # not required, but it does make it explicit
 
 	def get_piece_by_coords(self, x: int, y: int) -> BasePiece:
 		"""Get a piece from the board with the specified coordinates."""
@@ -109,11 +113,21 @@ class Board:
 			if point_in_rect(x, y, piece.rect):
 				return piece
 
+		return None  # not required, but it does make it explicit
+
 	def get_piece_occupying_square(self, square: Square) -> Union[BasePiece, None]:
 		"""Get a piece from the board occupying the specified square."""
 		for piece in self.pieces:
 			if piece.square == square:
 				return piece
+
+		return None  # not required, but it does make it explicit
+
+	def get_square_by_chess_coords(self, coords: str) -> Union[Square, None]:
+		"""Get a sqaure from the board with the specified chess coordinates."""
+		for square in self.squares:
+			if square.coordinates == coords:
+				return square
 
 		return None  # not required, but it does make it explicit
 

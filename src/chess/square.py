@@ -53,6 +53,8 @@ class Square(Renderable):
 	@property
 	def coordinates(self) -> str:
 		"""The coordinates of the square on a chessboard."""
+		# TODO: Make this method a class method and call it in the constructor
+		# so to not call other methods every time.
 		file = self._get_file_str(int(self._center[0] / Square.SQUARE_SIZE))
 		rank = self._get_rank_str(int(self._center[1] / Square.SQUARE_SIZE))
 		return file + rank
