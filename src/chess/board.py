@@ -37,23 +37,21 @@ class Board:
 		self.surface = surface
 		self.board_coordinates: List[BoardCoordinate]  # visual coordinates around the board
 
-		self.squares: List[Square]
-		self.pieces: List[BasePiece] = list()
-		self.move_turn: ChessColor = ChessColor.LIGHT
+		self.squares: List[Square] = []
+		self.pieces: List[BasePiece] = []
+		self.move_turn: ChessColor = ChessColor.LIGHT  # white starts first
 
+		# Set up the chessboard
 		self._create_board(fen_str)
 
 	def _create_board(self, fen_str: str):
 		"""Create the chessboard with squares, pieces and coordinates around the board."""
-		self.squares = self._setup_squares()
+		self._setup_squares()
 		self._setup_pieces(fen_str)
 		self.board_coordinates = self._setup_coordinates()
 
-	@staticmethod
-	def _setup_squares() -> List[Square]:
+	def _setup_squares(self) -> None:
 		"""Initialize the squares on the chessboard."""
-		squares = list()
-
 		for rank in range(8):
 			for file in range(8):
 				color = ChessColor.LIGHT if (file + rank) % 2 == 0 else ChessColor.DARK
@@ -61,9 +59,7 @@ class Board:
 				index = rank*8 + file
 
 				square = Square(color, pos, index)
-				squares.append(square)
-
-		return squares
+				self.squares.append(square)
 
 	def _setup_pieces(self, fen_str: str) -> None:
 		"""Initialize the pieces on the chessboard."""
@@ -72,7 +68,7 @@ class Board:
 
 	def _setup_coordinates(self) -> List[BoardCoordinate]:
 		"""Initialize the coordinate strings around the chessboard."""
-		coordinates = list()
+		coordinates = []
 
 		# a, b, c, d, e, f, g, h - horizontal, files
 		for i in range(56, 64):
@@ -96,10 +92,9 @@ class Board:
 
 		return coordinates
 
+	# TODO: Use binary search since the data is sorted or use dictionaries
 	# Getters
-	# TODO: Use binary search since the data is sorted
-	# TODO: Or, use dictionaries
-	def get_square_by_coords(self, x: int, y: int):
+	def get_square_by_coords(self, x: int, y: int) -> Union[Square, None]:
 		"""Get a square from the board with the specified x, y coordinates."""
 		for square in self.squares:
 			if point_in_rect(x, y, square.get_rect(self.surface)):
@@ -107,7 +102,7 @@ class Board:
 
 		return None  # not required, but it does make it explicit
 
-	def get_piece_by_coords(self, x: int, y: int) -> BasePiece:
+	def get_piece_by_coords(self, x: int, y: int) -> Union[BasePiece, None]:
 		"""Get a piece from the board with the specified coordinates."""
 		for piece in self.pieces:
 			if point_in_rect(x, y, piece.rect):
@@ -120,14 +115,6 @@ class Board:
 		for piece in self.pieces:
 			if piece.square == square:
 				return piece
-
-		return None  # not required, but it does make it explicit
-
-	def get_square_by_chess_coords(self, coords: str) -> Union[Square, None]:
-		"""Get a sqaure from the board with the specified chess coordinates."""
-		for square in self.squares:
-			if square.coordinates == coords:
-				return square
 
 		return None  # not required, but it does make it explicit
 
