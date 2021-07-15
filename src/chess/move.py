@@ -80,7 +80,7 @@ class Move:
 
 		if self.is_valid(board.move_turn, possible_squares):
 			# Check if a piece was captured
-			self._check_capture(board.pieces)
+			self._check_capture(board)
 
 			piece_type = self.moving_piece.__class__
 
@@ -132,6 +132,9 @@ class Move:
 
 		# Center the piece in the square so that it looks nice
 		self.moving_piece.center_in_square(board.surface)
+
+		# Update the piece dict of the board.
+		board.update_piece_dict()
 
 	def _get_index_difference(self) -> int:
 		return self.to.index - self.moving_piece.square.index

@@ -1,5 +1,5 @@
 # Type annotations
-from typing import List, Tuple, Union
+from typing import List, Tuple, Dict, Union
 
 import pygame as pg
 
@@ -39,6 +39,7 @@ class Board:
 
 		self.squares: List[Square] = []
 		self.pieces: List[BasePiece] = []
+		self.piece_dict: Dict[Square: BasePiece] = {}
 		self.move_turn: ChessColor = ChessColor.LIGHT  # white starts first
 
 		# Set up the chessboard
@@ -46,9 +47,21 @@ class Board:
 
 	def _create_board(self, fen_str: str):
 		"""Create the chessboard with squares, pieces and coordinates around the board."""
+		# Squares
 		self._setup_squares()
+
+		# Pieces
 		self._setup_pieces(fen_str)
+		self.update_piece_dict()
+
+		# Coordinates around the board (for graphics/GUI)
 		self.board_coordinates = self._setup_coordinates()
+
+	def update_piece_dict(self) -> None:
+		self.piece_dict.clear()
+
+		for piece in self.pieces:
+			self.piece_dict[piece.square] = piece
 
 	def _setup_squares(self) -> None:
 		"""Initialize the squares on the chessboard."""
@@ -112,11 +125,7 @@ class Board:
 
 	def get_piece_occupying_square(self, square: Square) -> Union[BasePiece, None]:
 		"""Get a piece from the board occupying the specified square."""
-		for piece in self.pieces:
-			if piece.square == square:
-				return piece
-
-		return None  # not required, but it does make it explicit
+		return self.piece_dict.get(square, None)
 
 	def render(self, dragged_piece: BasePiece):
 		"""Render the chessboard."""
