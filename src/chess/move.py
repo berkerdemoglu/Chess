@@ -80,7 +80,7 @@ class Move:
 
 		if self.is_valid(board.move_turn, possible_squares):
 			# Check if a piece was captured
-			self._check_capture(board)
+			self._check_capture(board.pieces)
 
 			piece_type = self.moving_piece.__class__
 
