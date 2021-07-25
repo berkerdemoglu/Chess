@@ -386,6 +386,12 @@ class King(FirstMovePiece):
 
 		# Castling moves - The rook will be moved in the 'Move' class.
 		if not self.has_moved:
+			# Reverse directions if it's a black king
+			if self.color == ChessColor.DARK:
+				previous_l = l
+				l = r
+				r = previous_l
+
 			# Queenside castling
 			if self.can_castle_queenside(board):
 				self.add_move(board.squares, possible_moves, l, l)
@@ -398,7 +404,7 @@ class King(FirstMovePiece):
 
 	def can_castle_queenside(self, board: 'Board') -> bool:
 		# If there are pieces in the way, cancel move generation.
-		l = Direction.LEFT.value * self.color.value
+		l = Direction.LEFT.value
 		index = self.square.index
 
 		for i in range(1, 4):  # loops between 1-3
@@ -413,7 +419,7 @@ class King(FirstMovePiece):
 
 	def can_castle_kingside(self, board: 'Board') -> bool:
 		# If there are pieces in the way, cancel move generation.
-		r = Direction.RIGHT.value * self.color.value
+		r = Direction.RIGHT.value
 		index = self.square.index
 
 		for i in range(1, 3):  # loops between 1-2
@@ -424,7 +430,7 @@ class King(FirstMovePiece):
 				return False
 
 		# 3 squares right
-		return self._can_castle(board, 3 * Direction.RIGHT.value * self.color.value)
+		return self._can_castle(board, 3*r)
 
 	def _can_castle(self, board: 'Board', increment: int) -> bool:
 		# Get the rook to castle with.

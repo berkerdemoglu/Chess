@@ -90,8 +90,8 @@ class Move:
 				index = self.moving_piece.square.index
 
 				# Get left's square index difference
-				l_inc = Direction.LEFT.value * self.moving_piece.color.value
-				r_inc = Direction.RIGHT.value * self.moving_piece.color.value
+				l_inc = Direction.LEFT.value
+				r_inc = Direction.RIGHT.value
 
 				if index_difference == l_inc*2:
 					# The king is castling queenside, get the queenside rook.
