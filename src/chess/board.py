@@ -1,5 +1,5 @@
 # Type annotations
-from typing import List, Tuple, Dict, Union
+from typing import List, Tuple, Dict, Union, Type
 
 import pygame as pg
 
@@ -11,6 +11,7 @@ from .piece import BasePiece
 from .square import Square
 from fen_parser.fen_parser import FENParser
 from .chess_constants import ChessColor
+from .move import Move
 
 
 class BoardCoordinate(Renderable):
@@ -126,6 +127,16 @@ class Board:
 	def get_piece_occupying_square(self, square: Square) -> Union[BasePiece, None]:
 		"""Get a piece from the board occupying the specified square."""
 		return self.piece_dict.get(square, None)
+
+	def get_pieces(self, piece_type: Type[BasePiece], piece_color: ChessColor) -> List[BasePiece]:
+		"""Get pieces that fit the given description, as in type and color."""
+		pieces_to_return = []
+
+		for piece in self.pieces:
+			if piece.__class__ == piece_type and piece.color == piece_color:
+				pieces_to_return.append(piece)
+
+		return pieces_to_return
 
 	def render(self, dragged_piece: BasePiece):
 		"""Render the chessboard."""

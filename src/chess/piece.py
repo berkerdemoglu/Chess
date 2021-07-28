@@ -31,6 +31,7 @@ __all__ = [
 #############################
 
 
+# TODO: Re-implement this functionality
 def highlight_squares(func: Callable):
 	"""Highlights a list of squares."""
 
@@ -43,6 +44,13 @@ def highlight_squares(func: Callable):
 		return possible_moves
 
 	return wrapper
+
+
+def remove_square_if_in_possible_moves(
+	square: Square, possible_moves: List[Square]
+	) -> None:
+	if square in possible_moves:
+		possible_moves.remove(square)
 
 
 ################################
@@ -128,6 +136,16 @@ class BasePiece(RenderablePiece):
 	def get_possible_moves(self, board: 'Board') -> List[Square]:
 		"""Get the valid squares the piece can move to."""
 		raise NotImplemented
+
+	def get_attacked_squares(self, board: 'Board') -> List[Square]:
+		"""
+		Get the attacked squares of the piece.
+
+		By default this piece returns all the possible moves of the piece,
+		but this method exists for detecting pawn attacks, so that we
+		have a general method for all pieces.
+		"""
+		return self.get_possible_moves(board)
 
 	def add_move(
 		self, board_squares: List[Square], possible_moves: List[Square], 
@@ -219,7 +237,6 @@ class Pawn(FirstMovePiece):
 	points = 1
 	notation = 'P'  # used for graphics
 
-	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate the possible moves for a pawn, including captures."""
 		# TODO: Promotions
@@ -269,13 +286,25 @@ class Pawn(FirstMovePiece):
 
 		return possible_moves
 
+	def get_attacked_squares(self, board):
+		possible_moves = self.get_possible_moves(board)
+
+		# A pawn doesn't "attack" the squares in front
+		forward = Direction.FORWARD.value*self.color.value
+		one_square_up = self.square.index + forward
+		two_squares_up = one_square_up + forward
+
+		remove_square_if_in_possible_moves(one_square_up, possible_moves)
+		remove_square_if_in_possible_moves(two_squares_up, possible_moves)
+
+		return possible_moves
+
 
 class Rook(FirstMovePiece):
 	"""Represents a rook on the chessboard."""
 	points = 5
 	notation = 'R'
 
-	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate moves for a rook, keeping the blocking pieces in mind."""
 		possible_moves = []
@@ -300,8 +329,7 @@ class Rook(FirstMovePiece):
 					if occupying_piece is None:
 						possible_moves.append(move_square)
 					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
+						possible_moves.append(move_square)
 						generate_fwd = False
 
 			# Backward
@@ -316,8 +344,7 @@ class Rook(FirstMovePiece):
 					if occupying_piece is None:
 						possible_moves.append(move_square)
 					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
+						possible_moves.append(move_square)
 						generate_bwd = False
 
 			# Right
@@ -332,8 +359,7 @@ class Rook(FirstMovePiece):
 					if occupying_piece is None:
 						possible_moves.append(move_square)
 					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
+						possible_moves.append(move_square)
 						generate_right = False
 
 			# Left
@@ -348,8 +374,7 @@ class Rook(FirstMovePiece):
 					if occupying_piece is None:
 						possible_moves.append(move_square)
 					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
+						possible_moves.append(move_square)
 						generate_left = False
 
 		return possible_moves
@@ -362,7 +387,6 @@ class King(FirstMovePiece):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-	@highlight_squares
 	def get_possible_moves(self, board):
 		possible_moves = []
 
@@ -449,7 +473,7 @@ class King(FirstMovePiece):
 				# The rook has moved, we cannot castle.
 				return False
 		else:
-			# The rook is not where it should be to castle!
+			# The rook is not where it should be for us to castle!
 			return False
 
 
@@ -458,7 +482,6 @@ class Knight(BasePiece):
 	points = 3
 	notation = 'N'
 
-	@highlight_squares
 	def get_possible_moves(self, board):
 		"""Generate the possible moves for the piece."""
 		possible_moves = []
@@ -490,7 +513,6 @@ class Bishop(BasePiece):
 	points = 3
 	notation = 'B'
 
-	@highlight_squares
 	def get_possible_moves(self, board):
 		possible_moves = []
 		index = self.square.index
@@ -522,8 +544,7 @@ class Bishop(BasePiece):
 					if occupying_piece is None:
 						possible_moves.append(move_square)
 					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
+						possible_moves.append(move_square)
 						generate_rf = False
 
 			# Right backward
@@ -536,8 +557,7 @@ class Bishop(BasePiece):
 					if occupying_piece is None:
 						possible_moves.append(move_square)
 					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
+						possible_moves.append(move_square)
 						generate_rb = False
 
 			# Left forward
@@ -550,8 +570,7 @@ class Bishop(BasePiece):
 					if occupying_piece is None:
 						possible_moves.append(move_square)
 					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
+						possible_moves.append(move_square)
 						generate_lf = False
 
 			# Left backward
@@ -564,8 +583,7 @@ class Bishop(BasePiece):
 					if occupying_piece is None:
 						possible_moves.append(move_square)
 					else:
-						if occupying_piece.color != self.color:
-							possible_moves.append(move_square)
+						possible_moves.append(move_square)
 						generate_lb = False
 
 		return possible_moves
@@ -576,9 +594,14 @@ class Queen(Bishop, Rook):
 	points = 9
 	notation = 'Q'
 
-	@highlight_squares
 	def get_possible_moves(self, board):
 		bishop_moves = Bishop.get_possible_moves(self, board)
 		rook_moves = Rook.get_possible_moves(self, board)
 
 		return bishop_moves + rook_moves
+
+	def get_attacked_squares(self, board):
+		bishop_attacks = Bishop.get_attacked_squares(self, board)
+		rook_attacks = Rook.get_attacked_squares(self, board)
+
+		return bishop_attacks + rook_attacks
