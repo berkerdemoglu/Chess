@@ -11,6 +11,34 @@ from .chess_constants import ChessColor
 pg.font.init()
 
 
+__all__ = ['Square']
+
+
+#############################
+######### UTILITIES #########
+#############################
+
+
+def _get_file_str(file: int) -> Union[str, NoReturn]:
+	"""Convert a given integer to a file letter on a chessboard."""
+	file_dict = {  # Used for int to str lookup for files
+		0: 'a', 1: 'b', 2: 'c',
+		3: 'd', 4: 'e', 5: 'f',
+		6: 'g', 7: 'h'
+	}
+
+	return file_dict[file]
+
+def _get_rank_str(rank: int) -> str:
+	"""Convert a given integer to a rank number on a chessboard."""
+	return str(8 - rank)
+
+
+############################
+##### THE SQUARE CLASS #####
+############################
+
+
 class Square(Renderable):
 	"""Represents a single square on the chessboard."""
 	SQUARE_SIZE = 75  # size on the screen
@@ -29,50 +57,44 @@ class Square(Renderable):
 	SQUARE_FONT = pg.font.SysFont(*SQUARE_FONT_PROPERTIES)
 	SQUARE_FONT_COLOR = (32, 30, 31)
 
-	_FILE_DICT = {  # Used for int to str lookup for files
-		0: 'a', 1: 'b', 2: 'c',
-		3: 'd', 4: 'e', 5: 'f',
-		6: 'g', 7: 'h'
-	}
-
-	def __init__(self, color: ChessColor, pos: Tuple[int, int], index: int):
+	def __init__(
+		self, color: ChessColor, pos: Tuple[int, int], 
+		index: int, surface: pg.Surface
+		):
 		"""Initialize the color and the position of the square."""
 		self.color = color
-		self._draw_color = Square.LIGHT_SQUARE_COLOR \
-			if color == ChessColor.LIGHT else Square.DARK_SQUARE_COLOR
-		self._highlight_color: Tuple[int, int, int, float] = \
-			self._draw_color[0], self._draw_color[1], self._draw_color[2], 1.0
+		self._draw_color = self._init_draw_color()
+		self._highlight_color = self._init_highlight_color()
 		self._colorname = 'LIGHT' if color == Square.LIGHT_SQUARE_COLOR else 'DARK'
 
 		self.center_x = pos[0]
 		self.center_y = pos[1]
 		self._center = pos
+		self.rect = self._init_rect(surface)
 
 		self.index = index  # index in the squares list
+		self.coordinates = self._init_coordinates()
 
-	@property
-	def coordinates(self) -> str:
-		"""The coordinates of the square on a chessboard."""
-		# TODO: Make this method a class method and call it in the constructor
-		# so to not call other methods every time.
-		file = self._get_file_str(int(self._center[0] / Square.SQUARE_SIZE))
-		rank = self._get_rank_str(int(self._center[1] / Square.SQUARE_SIZE))
+	def _init_coordinates(self) -> str:
+		"""Help initialize the coordinates of the square on a chessboard."""
+		file = _get_file_str(int(self._center[0] / Square.SQUARE_SIZE))
+		rank = _get_rank_str(int(self._center[1] / Square.SQUARE_SIZE))
 		return file + rank
 
-	@staticmethod
-	def _get_file_str(file: int) -> Union[str, NoReturn]:
-		"""Convert a given integer to a file letter on a chessboard."""
-		try:
-			file_str = Square._FILE_DICT[file]
-		except KeyError:
-			raise ValueError('File (as an integer) must be between 0 and 7')
+	def _init_draw_color(self) -> Tuple[int, int, int]:
+		if self.color == ChessColor.LIGHT:
+			return Square.LIGHT_SQUARE_COLOR
 		else:
-			return file_str
+			return Square.DARK_SQUARE_COLOR
 
-	@staticmethod
-	def _get_rank_str(rank: int) -> str:
-		"""Convert a given integer to a rank number on a chessboard."""
-		return str(8 - rank)
+	def _init_highlight_color(self) -> Tuple[int, int, int, float]:
+		return self._draw_color[0], self._draw_color[1], self._draw_color[2], 1.0
+
+	def _init_rect(self, surface: pg.Surface) -> pg.Rect:
+		"""Get the rect of the square, ready to be rendered to the screen."""
+		coordinates = self.get_pos(surface)
+
+		return pg.Rect(*coordinates, Square.SQUARE_SIZE, Square.SQUARE_SIZE)
 
 	def get_pos(self, surface: pg.Surface) -> Tuple[int, int]:
 		"""Get the coordinates of the square on the screen."""
@@ -81,12 +103,6 @@ class Square(Renderable):
 		y = self.center_y + surface_rect.centery - 4*Square.SQUARE_SIZE
 
 		return x, y
-
-	def get_rect(self, surface: pg.Surface) -> pg.Rect:
-		"""Get the rect of the square, ready to be rendered to the screen."""
-		coordinates = self.get_pos(surface)
-
-		return pg.Rect(*coordinates, Square.SQUARE_SIZE, Square.SQUARE_SIZE)
 
 	# Color-related methods
 	def highlight(self, highlight_color: Tuple[int, int, int, float]):
@@ -102,9 +118,7 @@ class Square(Renderable):
 		return blend_colors(self._highlight_color, self._draw_color)
 
 	def render(self, surface: pg.Surface):
-		rect = self.get_rect(surface)
-
-		pg.draw.rect(surface, self.get_render_color(), rect)
+		pg.draw.rect(surface, self.get_render_color(), self.rect)
 
 	def __str__(self):
 		"""String representation of a square."""

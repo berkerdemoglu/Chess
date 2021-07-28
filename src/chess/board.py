@@ -72,7 +72,7 @@ class Board:
 				pos = (file * Square.SQUARE_SIZE, rank * Square.SQUARE_SIZE)
 				index = rank*8 + file
 
-				square = Square(color, pos, index)
+				square = Square(color, pos, index, self.surface)
 				self.squares.append(square)
 
 	def _setup_pieces(self, fen_str: str) -> None:
@@ -111,7 +111,7 @@ class Board:
 	def get_square_by_coords(self, x: int, y: int) -> Union[Square, None]:
 		"""Get a square from the board with the specified x, y coordinates."""
 		for square in self.squares:
-			if point_in_rect(x, y, square.get_rect(self.surface)):
+			if point_in_rect(x, y, square.rect):
 				return square
 
 		return None  # not required, but it does make it explicit
