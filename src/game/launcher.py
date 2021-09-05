@@ -4,7 +4,7 @@ from typing import Dict, Callable
 # GUI stuff
 import tkinter as tk
 from tkinter import messagebox
-from settings import LAUNCHER_SETTINGS as LS
+from .launcher_settings import LAUNCHER_SETTINGS as LS
 
 from .drawable import DrawableMixin
 from .fen_gui import FENFrame
@@ -81,6 +81,7 @@ class LauncherWindow(tk.Tk, DrawableMixin):
 
 
 class Launcher:
+	# TODO: Don't open the application if launcher GUI is closed by hand
 
 	def __init__(self):
 		"""Initialize the launcher's main window."""

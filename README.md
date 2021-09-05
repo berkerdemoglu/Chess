@@ -8,3 +8,6 @@ A chess application written in Python using the pygame library.
 - PGN reading/loading
 - A good-looking GUI launcher for the application
 - Set up a chess position
+
+### Configuration files
+In a configuration file, a line that starts with `//` is parsed as a comment.

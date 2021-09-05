@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 # GUI-related imports
 import tkinter as tk
 from .drawable import DrawableMixin
-from settings import LAUNCHER_SETTINGS as LS
+from .launcher_settings import LAUNCHER_SETTINGS as LS
 
 from chess import Board  # for default FEN
 
