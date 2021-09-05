@@ -1,4 +1,11 @@
-__pycache__
+# Virtual environments
 venv/
+cenv/
 
+# Pycharm stuff
 .idea/
+
+# Python bytecode folder/files
+__pycache__
+__pycache__/
+*.pyc
