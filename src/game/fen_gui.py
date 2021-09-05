@@ -5,17 +5,17 @@ if TYPE_CHECKING:
 
 # GUI-related imports
 import tkinter as tk
-from .drawable import DrawableMixin
+from .widget_mixin import WidgetMixin
 from .launcher_settings import LAUNCHER_SETTINGS as LS
 
 from chess import Board  # for default FEN
 
 
-class FENEntry(tk.Entry, DrawableMixin):
+class FENEntry(tk.Entry, WidgetMixin):
 
 	def __init__(self, frame: tk.LabelFrame):
 		super(FENEntry, self).__init__(frame, width=100, borderwidth=10)
-		DrawableMixin.__init__(self, frame)
+		WidgetMixin.__init__(self, frame)
 
 		# Insert the default FEN
 		self.insert(tk.END, Board.DEFAULT_POSITION_FEN)
@@ -31,7 +31,7 @@ class FENEntry(tk.Entry, DrawableMixin):
 		self.insert(tk.END, new_fen)
 
 
-class FENResetButton(tk.Button, DrawableMixin):
+class FENResetButton(tk.Button, WidgetMixin):
 	"""
 	The button that changes the FEN entry 
 	widget's text to the default position FEN.
@@ -42,13 +42,13 @@ class FENResetButton(tk.Button, DrawableMixin):
 				frame, text='Reset FEN', padx=5, pady=5, command=command,
 				fg=LS.FG_COLOR, bg=LS.BG_COLOR, font=LS.SMALL_BUTTON_FONT
 			)
-		DrawableMixin.__init__(self, frame)  # self.window initialized
+		WidgetMixin.__init__(self, frame)  # self.window initialized
 
 	def draw_widget(self):
 		self.grid(row=1, column=0, columnspan=1, padx=5, pady=5)
 
 
-class FENClearButton(tk.Button, DrawableMixin):
+class FENClearButton(tk.Button, WidgetMixin):
 	"""The button that clears the user's FEN entry."""
 
 	def __init__(self, frame: tk.LabelFrame, command: Callable):
@@ -56,13 +56,13 @@ class FENClearButton(tk.Button, DrawableMixin):
 				frame, text='Clear Entry', padx=5, pady=5, command=command, 
 				fg=LS.FG_COLOR, bg=LS.BG_COLOR, font=LS.SMALL_BUTTON_FONT
 			)
-		DrawableMixin.__init__(self, frame)  # self.window initialized
+		WidgetMixin.__init__(self, frame)  # self.window initialized
 
 	def draw_widget(self):
 		self.grid(row=1, column=1, columnspan=1, padx=5, pady=5)
 
 
-class FENFrame(tk.LabelFrame, DrawableMixin):
+class FENFrame(tk.LabelFrame, WidgetMixin):
 	"""
 	The frame that holds widgets related to FEN.
 
@@ -76,7 +76,7 @@ class FENFrame(tk.LabelFrame, DrawableMixin):
 				root, text='Starting Position FEN', padx=10, pady=10, font=LS.FONT,
 				bg=LS.BG_COLOR, fg=LS.FG_COLOR
 			)
-		DrawableMixin.__init__(self, root)
+		WidgetMixin.__init__(self, root)
 
 		# Widgets
 		self.fen_entry = FENEntry(self)

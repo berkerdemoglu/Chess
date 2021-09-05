@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import messagebox
 from .launcher_settings import LAUNCHER_SETTINGS as LS
 
-from .drawable import DrawableMixin
+from .widget_mixin import WidgetMixin
 from .fen_gui import FENFrame
 
 # Imports for starting position FEN
@@ -18,20 +18,20 @@ from fen_parser import validate_fen
 LAUNCHER_FEN_KEY = 'fen'
 
 
-class StartButton(tk.Button, DrawableMixin):
+class StartButton(tk.Button, WidgetMixin):
 
 	def __init__(self, root: tk.Tk, command: Callable):
 		super(StartButton, self).__init__(
 				root, text='Start', padx=10, pady=10, command=command,
 				font=LS.FONT, bg=LS.BG_COLOR, fg=LS.FG_COLOR
 			)
-		DrawableMixin.__init__(self, root)  # window attribute initialized
+		WidgetMixin.__init__(self, root)  # window attribute initialized
 
 	def draw_widget(self):
 		self.pack(anchor='center', padx=25, pady=25)
 
 
-class LauncherWindow(tk.Tk, DrawableMixin):
+class LauncherWindow(tk.Tk, WidgetMixin):
 	"""
 	A wrapper class that handles the launcher's main window.
 

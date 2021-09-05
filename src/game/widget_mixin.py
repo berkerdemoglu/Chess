@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class DrawableMixin(ABC):  # TODO: rename to 'WidgetMixin'
+class WidgetMixin(ABC):
 	"""An abstract base class for widgets."""
 
 	def __init__(self, window):
