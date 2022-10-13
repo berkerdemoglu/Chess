@@ -21,8 +21,9 @@ from .chess_constants import ChessColor, Direction
 
 # Define what can be imported from this module.
 __all__ = [
-	'BasePiece', 'Pawn', 'Bishop',
-	'Knight', 'Rook', 'Queen', 'King'
+	'BasePiece', 'FirstMovePiece', 
+	'Pawn', 'Bishop', 'Knight', 
+	'Rook', 'Queen', 'King'
 ]
 
 
@@ -215,7 +216,15 @@ class BasePiece(RenderablePiece):
 		r = Direction.RIGHT.value * self.color.value
 		l = Direction.LEFT.value * self.color.value
 
-		return f, b, r, l 
+		return f, b, r, l
+
+	def irow(self, inc: int = 0) -> int:
+		"""Return the row of the piece as an integer between 0 and 7."""
+		return (self.square.index+inc) // 8
+
+	def icol(self, inc: int = 0) -> int:
+		"""Return the column of the piece as an integer between 0 and 7."""
+		return (self.square.index+inc) % 8
 
 
 ################################
@@ -236,6 +245,7 @@ class Pawn(FirstMovePiece):
 	"""Represents a pawn on the chessboard."""
 	points = 1
 	notation = 'P'  # used for graphics
+	PROMOTION_CHOICES = ['Queen', 'Rook', 'Bishop', 'Knight']
 
 	def get_possible_moves(self, board):
 		"""Generate the possible moves for a pawn, including captures."""

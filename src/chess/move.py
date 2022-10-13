@@ -1,21 +1,74 @@
+# TODO: Add comments to this module (move.py)
 # Type annotations
-from typing import List, TYPE_CHECKING
+from typing import Callable, Sequence, Tuple, List, TYPE_CHECKING
 if TYPE_CHECKING:
 	from .board import Board
 	from .square import Square
 
 # Sound-related imports
 from settings import SOUND_DIR
-from pygame import mixer
-mixer.init()
+import pygame as pg
+
+# Import tkinter for pawn promotion GUI
+import tkinter as tk
 
 # Chess imports
 from .chess_constants import ChessColor, Direction
-from .piece import BasePiece, FirstMovePiece, King
+from .piece import *
+
+# Define what can be imported from this module
+__all__ = ['Move']
+
+# Init pygame's sound package
+pg.mixer.init()
+
+
+#################################
+######### PROMOTION GUI #########
+#################################
+def create_choice_button(root: tk.Tk, choice: str, promotion_cmd: Callable) -> tk.Button:
+	cmd = lambda: promotion_cmd(choice)
+	button = tk.Button(
+			root, text=choice, padx=10, pady=10, command=cmd
+		)
+	return button
+
+
+class PromotionDialog(tk.Tk):
+	def __init__(self, choices: Sequence[str]):
+		super().__init__()
+		self.title('Choose piece to promote to')
+
+		self.buttons = []
+		for choice in choices:
+			button = create_choice_button(
+					self, choice, self._choose_promotion
+				)
+			self.buttons.append(button)
+
+		self.promotion_choice = None
+
+	def start_dialog(self):
+		self.draw_widgets()
+		self.mainloop()
+
+	def draw_widgets(self):
+		for i in range(len(self.buttons)):
+			button = self.buttons[i]
+			button.grid(row=0, column=i)
+
+	def _choose_promotion(self, user_choice: str):
+		self.promotion_choice = user_choice
+		self.destroy()
+
+
+##################################
+######### THE MOVE CLASS #########
+##################################
 
 
 class Move:
-	INVALID_MOVE_SOUND = mixer.Sound(SOUND_DIR / 'invalid_move.wav')
+	INVALID_MOVE_SOUND = pg.mixer.Sound(SOUND_DIR / 'invalid_move.wav')
 
 	def __init__(self, to: 'Square', moving_piece: 'BasePiece', occupying_piece: 'BasePiece'):
 		"""
@@ -131,20 +184,42 @@ class Move:
 		# Move the rook
 		rook.move_piece(board.squares[index + increment], board.surface)
 
+	def _check_promotion(self, board: 'Board') -> None:
+		promotion_row = 0 if self.moving_piece.color == ChessColor.LIGHT else 7
+
+		if self.moving_piece.irow(self._get_index_difference()) == promotion_row:
+			# The pawn is being promoted, start the promotion dialog
+			dialog = PromotionDialog(Pawn.PROMOTION_CHOICES)
+			dialog.start_dialog()
+
+			if dialog.promotion_choice is None:
+				return
+			board.pieces.remove(self.moving_piece)
+
+			# Change the moving piece from pawn to the promotion of choice
+			PromotionClass = eval(dialog.promotion_choice)
+			self.moving_piece = PromotionClass(
+					self.moving_piece.color, self.moving_piece.square, board.surface
+				)
+			board.pieces.append(self.moving_piece)
+
 	def make_move(self, board: 'Board', possible_squares: List['Square']) -> None:
 		"""Make the move on the board, if it is valid."""
 		# TODO: Return notation for the move.
 		# TODO: Cannot pass through squares that would put the king in check.
+		# TODO: While checking for checks on the king, check if the attacking piece can be captured
 
 		if self.is_valid(board.move_turn, possible_squares) and self.check_checks(board):
 			# Check if a piece was captured
 			self._check_capture(board.pieces)
 
 			piece_type = self.moving_piece.__class__
-
-			# Check if the king is castling
 			if piece_type == King:
+				# Check if the king is castling
 				self.check_castling(board)
+			elif piece_type == Pawn:
+				# Check if a pawn is being promoted
+				self._check_promotion(board)
 
 			# Check if the moving piece is of type 'FirstMovePiece'.
 			self._check_first_move_piece(piece_type)
