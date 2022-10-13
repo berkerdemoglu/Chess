@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 
 class BaseParser(ABC):
 
-	def __init(self, board: 'Board'):
+	def __init__(self, board: 'Board'):
 		self.board = board
 
 	@abstractmethod
