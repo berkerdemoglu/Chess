@@ -143,8 +143,8 @@ class BasePiece(RenderablePiece):
 		Get the attacked squares of the piece.
 
 		By default this piece returns all the possible moves of the piece,
-		but this method exists for detecting pawn attacks, so that we
-		have a general method for all pieces.
+		but this method exists for detecting pawn attacks, therefore every
+		piece has this method.
 		"""
 		return self.get_possible_moves(board)
 
@@ -397,12 +397,27 @@ class King(FirstMovePiece):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
+		# Declare the castling rights variables here
+		self.kingside_right: bool
+		self.queenside_right: bool
+
+	def init_castling_rights(self, castling_rights: str):
+		"""Initializes the castling rights for the king."""
+		if 'k' in castling_rights.lower():
+			self.kingside_right = True
+		else:
+			self.kingside_right = False
+
+		if 'q'in castling_rights.lower():
+			self.queenside_right = True
+		else:
+			self.queenside_right = False
+
 	def get_possible_moves(self, board):
 		possible_moves = []
 
 		# Get directions
 		f, b, r, l = self.get_directions()
-		f_num, b_num, r_num, l_num = self.get_number_directions()
 
 		# Forward moves
 		self.add_move(board.squares, possible_moves, f)
@@ -437,6 +452,11 @@ class King(FirstMovePiece):
 		return possible_moves
 
 	def can_castle_queenside(self, board: 'Board') -> bool:
+		"""Checks if the king can castle queenside."""
+		# Check if the entered FEN grants this castling right
+		if not self.queenside_right:
+			return False
+
 		# If there are pieces in the way, cancel move generation.
 		l = Direction.LEFT.value
 		index = self.square.index
@@ -452,6 +472,11 @@ class King(FirstMovePiece):
 		return self._can_castle(board, 4*l)
 
 	def can_castle_kingside(self, board: 'Board') -> bool:
+		"""Checks if the king can castle kingside."""
+		# Check if the entered FEN grants this castling right
+		if not self.kingside_right:
+			return False
+
 		# If there are pieces in the way, cancel move generation.
 		r = Direction.RIGHT.value
 		index = self.square.index
@@ -467,6 +492,7 @@ class King(FirstMovePiece):
 		return self._can_castle(board, 3*r)
 
 	def _can_castle(self, board: 'Board', increment: int) -> bool:
+		"""Implements the castling right logic."""
 		# Get the rook to castle with.
 		rook_square = board.squares[self.square.index + increment]
 		rook = board.get_piece_occupying_square(rook_square)

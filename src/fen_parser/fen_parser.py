@@ -4,6 +4,8 @@ if TYPE_CHECKING:
 	from pygame import Surface
 	from chess import Square, Board
 
+from utils import sort_word_by_case
+
 # Import it from the module to avoid a circular import
 from chess.chess_constants import ChessColor
 from chess.piece import BasePiece, King
@@ -14,7 +16,6 @@ from .base_parser import BaseParser
 
 class FENParser(BaseParser):
 	"""A class that parses a FEN string and converts it into pieces."""
-	# TODO: If king is not on e4, then has_moved = True
 
 	def __init__(self, surface: 'Surface', fen: str, board: 'Board'):
 		self.surface = surface
@@ -25,23 +26,38 @@ class FENParser(BaseParser):
 		self.ranks = self.fen[0].split('/')
 		self.castling_rights = self.fen[2]
 
+		# Declare the king variables here
+		self.white_king: King
+		self.black_king: King
+
 	def parse(self) -> None:
 		"""Parse the FEN string and set piece positions."""
+		# TODO: Make the user enter another FEN if there is an error parsing it
 		# Parse the ranks
 		for i in range(len(self.ranks)):
-			self._parse_rank(self.ranks[i], index=i)
+			self._parse_rank(self.ranks[i], i)
 
 		# Parse move turn
 		self.board.move_turn = ChessColor.LIGHT if self.fen[1] == 'w' else ChessColor.DARK
 
-	def _parse_castling_rights(
-			self, white_king: King, black_king: King
-		):
-		pass
+		# Parse castling rights
+		self.white_king = self._get_king(ChessColor.LIGHT)
+		self.black_king = self._get_king(ChessColor.DARK)
+		self._parse_castling_rights()
 
-	def _parse_rank(self, rank: str, **kwargs) -> None:
+	def _parse_castling_rights(self):
+		# TODO: Note to self, what do you do if there is no rook to castle with?
+		# TODO: What do you do if there is no king on the board?
+		white_rights, black_rights = sort_word_by_case(self.castling_rights)
+
+		self.white_king.init_castling_rights(white_rights)
+		self.black_king.init_castling_rights(black_rights)
+
+	def _get_king(self, color: ChessColor):
+		return self.board.get_pieces(King, color)[0]
+
+	def _parse_rank(self, rank: str, index: int) -> None:
 		"""Parse a rank on the chessboard."""
-		index = kwargs['index']
 		rank_squares = self.board.squares[index*8: (index + 1)*8]
 		square_index = 0
 
@@ -73,9 +89,10 @@ class FENParser(BaseParser):
 		return piece
 
 	def _set_king_has_moved(self, king: 'King'):
+		# TODO: Implement this after the castling rights thing
 		if king.color == ChessColor.LIGHT:
 			# White king
-			if king.square.coordinates != 'e4':
+			if king.square.coordinates != 'e1':
 				# Must be on e4 to castle
 				king.has_moved = True
 			else:
