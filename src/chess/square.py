@@ -19,15 +19,11 @@ __all__ = ['Square']
 #############################
 
 
-def _get_file_str(file: int) -> Union[str, NoReturn]:
+def _get_file_str(file: int) -> str:
 	"""Convert a given integer to a file letter on a chessboard."""
-	file_dict = {  # Used for int to str lookup for files
-		0: 'a', 1: 'b', 2: 'c',
-		3: 'd', 4: 'e', 5: 'f',
-		6: 'g', 7: 'h'
-	}
+	file_ascii = file + 97
 
-	return file_dict[file]
+	return chr(file_ascii)
 
 def _get_rank_str(rank: int) -> str:
 	"""Convert a given integer to a rank number on a chessboard."""
