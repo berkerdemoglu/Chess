@@ -8,6 +8,19 @@ import pygame as pg
 from time import time as time_now
 
 
+def sort_word_by_case(word: str) -> Tuple[str, str]:
+	uppercase_letters = ""
+	lowercase_letters = ""
+
+	for ch in word:
+		if ch.isupper():
+			uppercase_letters += ch
+		else:
+			lowercase_letters += ch
+
+	return uppercase_letters, lowercase_letters
+
+
 def blend_colors(
 		rgba: Tuple[int, int, int, float], rgb: Tuple[int, int, int]
 	) -> Tuple[int, int, int]:
