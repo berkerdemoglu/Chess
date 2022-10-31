@@ -398,20 +398,36 @@ class King(FirstMovePiece):
 		super().__init__(*args, **kwargs)
 
 		# Declare the castling rights variables here
-		self.kingside_right: bool
-		self.queenside_right: bool
+		self.fen_kingside_right: bool
+		self.fen_queenside_right: bool
 
-	def init_castling_rights(self, castling_rights: str):
-		"""Initializes the castling rights for the king."""
+	def init_fen_castling_rights(self, castling_rights: str) -> None:
+		"""Initializes the castling rights for the king from the entered FEN."""
 		if 'k' in castling_rights.lower():
-			self.kingside_right = True
+			self.fen_kingside_right = True
 		else:
-			self.kingside_right = False
+			self.fen_kingside_right = False
 
 		if 'q'in castling_rights.lower():
-			self.queenside_right = True
+			self.fen_queenside_right = True
 		else:
-			self.queenside_right = False
+			self.fen_queenside_right = False
+
+	def get_castling_rights(self, board: 'Board', for_fen=True) -> str:
+		if self.has_moved:
+			return ""
+
+		castling_rights = ""
+
+		if self.fen_kingside_right:
+			if self.can_castle_kingside(board, for_fen=for_fen):
+				castling_rights += 'K'
+
+		if self.fen_queenside_right:
+			if self.can_castle_queenside(board, for_fen=for_fen):
+				castling_rights += 'Q'
+
+		return castling_rights
 
 	def get_possible_moves(self, board):
 		possible_moves = []
@@ -451,10 +467,10 @@ class King(FirstMovePiece):
 
 		return possible_moves
 
-	def can_castle_queenside(self, board: 'Board') -> bool:
+	def can_castle_queenside(self, board: 'Board', for_fen=False) -> bool:
 		"""Checks if the king can castle queenside."""
 		# Check if the entered FEN grants this castling right
-		if not self.queenside_right:
+		if not self.fen_queenside_right:
 			return False
 
 		# If there are pieces in the way, cancel move generation.
@@ -466,15 +482,16 @@ class King(FirstMovePiece):
 			next_square = board.squares[index + l_increment]
 			if board.get_piece_occupying_square(next_square) is not None:
 				# There are pieces in the way, cannot castle.
-				return False
+				if not for_fen:
+					return False
 
 		# 4 squares left
 		return self._can_castle(board, 4*l)
 
-	def can_castle_kingside(self, board: 'Board') -> bool:
+	def can_castle_kingside(self, board: 'Board', for_fen=False) -> bool:
 		"""Checks if the king can castle kingside."""
 		# Check if the entered FEN grants this castling right
-		if not self.kingside_right:
+		if not self.fen_kingside_right:
 			return False
 
 		# If there are pieces in the way, cancel move generation.
@@ -486,7 +503,8 @@ class King(FirstMovePiece):
 			next_square = board.squares[index + r_increment]
 			if board.get_piece_occupying_square(next_square) is not None:
 				# There are pieces in the way, cannot castle.
-				return False
+				if not for_fen:
+					return False
 
 		# 3 squares right
 		return self._can_castle(board, 3*r)

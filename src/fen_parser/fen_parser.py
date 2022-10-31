@@ -26,10 +26,6 @@ class FENParser(BaseParser):
 		self.ranks = self.fen[0].split('/')
 		self.castling_rights = self.fen[2]
 
-		# Declare the king variables here
-		self.white_king: King
-		self.black_king: King
-
 	def parse(self) -> None:
 		"""Parse the FEN string and set piece positions."""
 		# TODO: Make the user enter another FEN if there is an error parsing it
@@ -41,8 +37,8 @@ class FENParser(BaseParser):
 		self.board.move_turn = ChessColor.LIGHT if self.fen[1] == 'w' else ChessColor.DARK
 
 		# Parse castling rights
-		self.white_king = self._get_king(ChessColor.LIGHT)
-		self.black_king = self._get_king(ChessColor.DARK)
+		self.board.white_king = self._get_king(ChessColor.LIGHT)
+		self.board.black_king = self._get_king(ChessColor.DARK)
 		self._parse_castling_rights()
 
 	def _parse_castling_rights(self):
@@ -50,8 +46,8 @@ class FENParser(BaseParser):
 		# TODO: What do you do if there is no king on the board?
 		white_rights, black_rights = sort_word_by_case(self.castling_rights)
 
-		self.white_king.init_castling_rights(white_rights)
-		self.black_king.init_castling_rights(black_rights)
+		self.board.white_king.init_fen_castling_rights(white_rights)
+		self.board.black_king.init_fen_castling_rights(black_rights)
 
 	def _get_king(self, color: ChessColor):
 		return self.board.get_pieces(King, color)[0]

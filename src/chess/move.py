@@ -232,6 +232,9 @@ class Move:
 
 			# Change the move turn
 			board.move_turn = ChessColor.negate(self.moving_piece.color)
+
+			# Increment move number
+			board.increment_move_number()
 		else:
 			# Play the invalid move sound
 			Move.INVALID_MOVE_SOUND.play()
