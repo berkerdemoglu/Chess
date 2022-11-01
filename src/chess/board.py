@@ -51,13 +51,8 @@ class Board:
 		# Set up the chessboard
 		self._create_board(fen_str)
 
-	def get_fullmove_number(self):
-		"""Returns the full move number of the current game."""
-		return (self._move_number + 2) // 2
-
-	def increment_move_number(self, increment=1):
-		"""Increments the number of half moves made."""
-		self._move_number += increment
+		# Define borders of the board
+		self.border_rect = self._define_borders()
 
 	def _create_board(self, fen_str: str):
 		"""Create the chessboard with squares, pieces and coordinates around the board."""
@@ -119,6 +114,13 @@ class Board:
 
 		return coordinates
 
+	def _define_borders(self) -> pg.Rect:
+		left = self.squares[0].rect.left
+		top = self.squares[0].rect.top
+		length = 8*Square.SQUARE_SIZE
+
+		return pg.Rect(left, top, length, length)
+
 	# TODO: Use binary search since the data is sorted or use dictionaries
 	# Getters
 	def get_square_by_coords(self, x: int, y: int) -> Union[Square, None]:
@@ -150,6 +152,14 @@ class Board:
 				pieces_to_return.append(piece)
 
 		return pieces_to_return
+
+	def get_fullmove_number(self):
+		"""Returns the full move number of the current game."""
+		return (self._move_number + 2) // 2
+
+	def increment_move_number(self, increment=1):
+		"""Increments the number of half moves made."""
+		self._move_number += increment
 
 	def render(self, dragged_piece: BasePiece):
 		"""Render the chessboard."""

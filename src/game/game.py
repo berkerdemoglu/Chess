@@ -19,6 +19,8 @@ from utils import get_dragged_piece, get_release_square
 from chess import Board, Move, Square
 from fen_parser.board_parser import BoardParser
 
+from .menu import ChessMenu
+
 
 class ChessGame(Display):
 	"""The class that represents the game."""
@@ -27,8 +29,12 @@ class ChessGame(Display):
 		"""Initialize pygame, the screen and the board."""
 		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, FPS, BACKGROUND_COLOR)
 
+		# Board
 		self.board: Board = Board(self.screen, fen_str)
 		self.board_parser: BoardParser = BoardParser(self.board)
+
+		# Chess screen menu
+		self.chess_menu = ChessMenu()
 
 		# Flags
 		self.dragged_piece: Union['BasePiece', None] = None
@@ -89,8 +95,8 @@ class ChessGame(Display):
 
 	def render(self):
 		super().render()
-
 		self.board.render(self.dragged_piece)
+		self.chess_menu.render(self.screen)
 
 	def update(self):
 		if self.dragged_piece is not None:
