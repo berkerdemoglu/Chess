@@ -24,11 +24,16 @@ class FENEntry(tk.Entry, WidgetMixin):
 		self.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
 
 	def get_fen(self) -> str:
+		"""Return the current user entry."""
 		return str(self.get())
 
 	def set_fen(self, new_fen: str = "") -> None:
 		"""Set the entry text to a specified text."""
 		self.insert(tk.END, new_fen)
+
+	def clear_fen(self) -> None:
+		"""Clears the text entry area."""
+		self.delete(0, tk.END)
 
 
 class FENResetButton(tk.Button, WidgetMixin):
@@ -98,7 +103,10 @@ class FENFrame(tk.LabelFrame, WidgetMixin):
 
 	# Commands
 	def cmd_reset_fen(self) -> None:
+		"""Resets the entry to the default FEN."""
+		self.fen_entry.clear_fen()
 		self.fen_entry.set_fen(Board.DEFAULT_POSITION_FEN)
 
 	def cmd_clear_fen(self) -> None:
-		self.fen_entry.set_fen()  # clears it by default
+		"""Deletes any text written in the FEN entry area."""
+		self.fen_entry.clear_fen()

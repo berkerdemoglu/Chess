@@ -41,10 +41,23 @@ class Board:
 		self.squares: List[Square] = []
 		self.pieces: List[BasePiece] = []
 		self.piece_dict: Dict[Square: BasePiece] = {}
-		self.move_turn: ChessColor = ChessColor.LIGHT  # white starts first
+		self.move_turn: ChessColor
+		self._move_number: int = 0
+
+		# Declare the king variables here, these will be defined in the FEN parser
+		self.white_king: King
+		self.black_king: King
 
 		# Set up the chessboard
 		self._create_board(fen_str)
+
+	def get_fullmove_number(self):
+		"""Returns the full move number of the current game."""
+		return (self._move_number + 2) // 2
+
+	def increment_move_number(self, increment=1):
+		"""Increments the number of half moves made."""
+		self._move_number += increment
 
 	def _create_board(self, fen_str: str):
 		"""Create the chessboard with squares, pieces and coordinates around the board."""
