@@ -1,1 +1,1 @@
-from .chess_menu import ChessMenu
+from .chess_menu import ChessMenu, ChessMenuHandler

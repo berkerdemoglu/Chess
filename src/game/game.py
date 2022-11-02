@@ -13,13 +13,17 @@ from graphics import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
 	BACKGROUND_COLOR, FPS
 )
-from utils import get_dragged_piece, get_release_square
+from utils import (
+		get_dragged_piece, 
+		get_release_square, 
+		point_in_rect
+	)
 
 # Chess imports
 from chess import Board, Move, Square
 from fen_parser.board_parser import BoardParser
 
-from .menu import ChessMenu
+from .menu import ChessMenu, ChessMenuHandler
 
 
 class ChessGame(Display):
@@ -35,6 +39,7 @@ class ChessGame(Display):
 
 		# Chess screen menu
 		self.chess_menu = ChessMenu()
+		self.chess_menu_handler = ChessMenuHandler(self.board_parser)
 
 		# Flags
 		self.dragged_piece: Union['BasePiece', None] = None
@@ -76,14 +81,20 @@ class ChessGame(Display):
 				# Exit the application.
 				sysexit(1)
 			elif event.type == pg.MOUSEBUTTONDOWN:
-				# Start dragging a piece if it was clicked on.
-				self.dragged_piece = get_dragged_piece(self.board)
-				if self.dragged_piece is not None:
-					# Highlight the dragged piece's current square.
-					self.dragged_piece.square.highlight(Square.CURRENT_SQUARE_HIGHLIGHT)
+				mouse_x, mouse_y = pg.mouse.get_pos()
+				if point_in_rect(mouse_x, mouse_y, self.board.border_rect):  # check chessboard
+					# Start dragging a piece if it was clicked on.
+					self.dragged_piece = get_dragged_piece(self.board)
+					if self.dragged_piece is not None:
+						# Highlight the dragged piece's current square.
+						self.dragged_piece.square.highlight(Square.CURRENT_SQUARE_HIGHLIGHT)
 
-					# Get possible squares the piece can move to.
-					self.possible_squares = self.dragged_piece.get_possible_moves(self.board)
+						# Get possible squares the piece can move to.
+						self.possible_squares = self.dragged_piece.get_possible_moves(self.board)
+				else:  # then it must be the chess menu
+					pressed_widget = self.chess_menu.get_pressed_widget(mouse_x, mouse_y)
+					if pressed_widget is not None:
+						self.chess_menu_handler.handle(pressed_widget)
 			elif event.type == pg.MOUSEBUTTONUP:
 				# Release the piece being dragged if it exists.
 				if self.is_dragging:
