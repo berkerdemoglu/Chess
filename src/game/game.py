@@ -43,30 +43,11 @@ class ChessGame(Display):
 		self.chess_menu_handler: ChessMenuHandler = ChessMenuHandler(self.board_parser)
 
 		# Flags
-		# TODO: Add MoveHandler and remove is_dragging property
+		# TODO: Add MoveHandler
 		self.dragged_piece: Union['BasePiece', None] = None
 		self.possible_squares: Union[List, None] = None
 
 		self.pressed_widget: Union['MenuWidget', None] = None
-
-	# Flags as properties
-	@property
-	def is_dragging(self) -> bool:
-		"""Flag for checking if a piece is actually being dragged by the user/player."""
-		return True if self.dragged_piece is not None else False
-
-	@is_dragging.setter
-	def is_dragging(self, value) -> None:
-		self.dragged_piece = value
-
-	@property
-	def is_pressing_widget(self) -> bool:
-		"""Flag for checking if a widget is being pressed."""
-		return True if self.pressed_widget is not None else False
-
-	@is_pressing_widget.setter
-	def is_pressing_widget(self, value):
-		self.pressed_widget = value
 
 	def move_piece(self, to_square: 'Square') -> None:
 		"""Move the dragged piece to a new square."""
@@ -93,7 +74,7 @@ class ChessGame(Display):
 				sysexit(1)
 			elif event.type == pg.MOUSEBUTTONDOWN:
 				mouse_x, mouse_y = pg.mouse.get_pos()
-				if point_in_rect(mouse_x, mouse_y, self.board.border_rect):  # check chessboard
+				if point_in_rect(mouse_x, mouse_y, self.board.border_rect):  # Chessboard
 					# Start dragging a piece if it was clicked on.
 					self.dragged_piece = get_dragged_piece(self.board)
 					if self.dragged_piece is not None:
@@ -102,22 +83,27 @@ class ChessGame(Display):
 
 						# Get possible squares the piece can move to.
 						self.possible_squares = self.dragged_piece.get_possible_moves(self.board)
-				else:  # then it must be the chess menu
+				else:  # Chess menu
+					# Highlight and handle pressed widget if a widget was clicked on.
 					self.pressed_widget = self.chess_menu.get_pressed_widget(mouse_x, mouse_y)
 					if self.pressed_widget is not None:
 						self.chess_menu_handler.handle(self.pressed_widget)
 						self.pressed_widget.highlight()
 			elif event.type == pg.MOUSEBUTTONUP:
 				# Release the piece being dragged if it exists.
-				if self.is_dragging:
+				if self.dragged_piece is not None:
 					to_square = get_release_square(self.board)
 					self.move_piece(to_square)
 
 					# Reset dragged piece reference after making the move
-					self.is_dragging = None
+					self.dragged_piece = None
 
-				if self.is_pressing_widget:
+				# Unhighlight the pressed widget if it exists.
+				if self.pressed_widget is not None:
 					self.pressed_widget.unhighlight()
+
+					# Reset pressed widget reference
+					self.pressed_widget = None
 
 	def render(self):
 		super().render()
