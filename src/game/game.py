@@ -2,6 +2,7 @@
 from typing import Union, TYPE_CHECKING, List
 if TYPE_CHECKING:
 	from chess.piece import BasePiece
+	from .menu import MenuWidget
 
 # Pygame and system
 from sys import exit as sysexit
@@ -38,12 +39,34 @@ class ChessGame(Display):
 		self.board_parser: BoardParser = BoardParser(self.board)
 
 		# Chess screen menu
-		self.chess_menu = ChessMenu()
-		self.chess_menu_handler = ChessMenuHandler(self.board_parser)
+		self.chess_menu: ChessMenu = ChessMenu()
+		self.chess_menu_handler: ChessMenuHandler = ChessMenuHandler(self.board_parser)
 
 		# Flags
+		# TODO: Add MoveHandler and remove is_dragging property
 		self.dragged_piece: Union['BasePiece', None] = None
-		self.possible_squares: Union['List', None] = None
+		self.possible_squares: Union[List, None] = None
+
+		self.pressed_widget: Union['MenuWidget', None] = None
+
+	# Flags as properties
+	@property
+	def is_dragging(self) -> bool:
+		"""Flag for checking if a piece is actually being dragged by the user/player."""
+		return True if self.dragged_piece is not None else False
+
+	@is_dragging.setter
+	def is_dragging(self, value) -> None:
+		self.dragged_piece = value
+
+	@property
+	def is_pressing_widget(self) -> bool:
+		"""Flag for checking if a widget is being pressed."""
+		return True if self.pressed_widget is not None else False
+
+	@is_pressing_widget.setter
+	def is_pressing_widget(self, value):
+		self.pressed_widget = value
 
 	def move_piece(self, to_square: 'Square') -> None:
 		"""Move the dragged piece to a new square."""
@@ -54,9 +77,6 @@ class ChessGame(Display):
 			# Create a move and make it.
 			move = Move(to_square, self.dragged_piece, occupying_piece)
 			move.make_move(self.board, self.possible_squares)
-
-			# Delete now useless objects to free up memory.
-			del move
 		else:
 			self.dragged_piece.square.unhighlight()
 			self.dragged_piece.center_in_square(self.screen)
@@ -64,15 +84,6 @@ class ChessGame(Display):
 		# Unhighlight all previously highlighted squares.
 		for square in self.possible_squares:
 			square.unhighlight()
-
-	@property
-	def is_dragging(self) -> bool:
-		"""Flag for checking if a piece is actually being dragged by the user/player."""
-		return True if self.dragged_piece is not None else False
-
-	@is_dragging.setter
-	def is_dragging(self, value) -> None:
-		self.dragged_piece = value
 
 	# Define abstract methods from Display below
 	def poll_events(self):
@@ -92,9 +103,10 @@ class ChessGame(Display):
 						# Get possible squares the piece can move to.
 						self.possible_squares = self.dragged_piece.get_possible_moves(self.board)
 				else:  # then it must be the chess menu
-					pressed_widget = self.chess_menu.get_pressed_widget(mouse_x, mouse_y)
-					if pressed_widget is not None:
-						self.chess_menu_handler.handle(pressed_widget)
+					self.pressed_widget = self.chess_menu.get_pressed_widget(mouse_x, mouse_y)
+					if self.pressed_widget is not None:
+						self.chess_menu_handler.handle(self.pressed_widget)
+						self.pressed_widget.highlight()
 			elif event.type == pg.MOUSEBUTTONUP:
 				# Release the piece being dragged if it exists.
 				if self.is_dragging:
@@ -103,6 +115,9 @@ class ChessGame(Display):
 
 					# Reset dragged piece reference after making the move
 					self.is_dragging = None
+
+				if self.is_pressing_widget:
+					self.pressed_widget.unhighlight()
 
 	def render(self):
 		super().render()

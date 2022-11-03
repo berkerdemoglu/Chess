@@ -12,6 +12,7 @@ class MenuWidget(Renderable):
 	MENU_FONT = pg.font.SysFont('monaco', 18)
 	WIDGET_HEIGHT = 60
 	WIDGET_WIDTH = 150
+	HIGHLIGHT_COLOR = pg.Color('red')  # TODO: change this
 
 	def __init__(
 			self, x:int, y:int, identifier: str, text:str, 
@@ -29,11 +30,19 @@ class MenuWidget(Renderable):
 		self.bg_color = bg_color
 		self.border_color = border_color
 
+		self._original_bg_color = bg_color
+
 		# Graphics
 		self.rect = self._init_rect()
 		self.border_rect = self._init_border_rect()
 		self.label = MenuWidget.MENU_FONT.render(text, True, self.text_color)
 		self.label_pos = self._center_label_pos()
+
+	def highlight(self):
+		self.bg_color = MenuWidget.HIGHLIGHT_COLOR
+
+	def unhighlight(self):
+		self.bg_color = self._original_bg_color
 
 	def _center_label_pos(self) -> Tuple[int, int]:
 		"""Centers the label inside the widget."""
