@@ -21,7 +21,8 @@ class ChessMenu(Renderable):
 	def __init__(self):
 		"""Initialize the widgets on the menu."""
 		self.board_fen_widget = MenuWidget(
-			10, 100, 'fen_widget', 'GET FEN', pg.Color('black'), pg.Color('white')
+			30, 100, 'fen_widget', 'GET FEN', 
+			pg.Color('black'), pg.Color('white'), pg.Color('black')
 			)
 
 		self.widgets = self._init_widget_list()
