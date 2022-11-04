@@ -153,6 +153,9 @@ class Board:
 
 		return pieces_to_return
 
+	def get_king(self, c: ChessColor):
+		return self.white_king if c == ChessColor.LIGHT else self.black_king
+
 	def get_fullmove_number(self):
 		"""Returns the full move number of the current game."""
 		return (self._move_number + 2) // 2

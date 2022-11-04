@@ -121,32 +121,35 @@ class Move:
 		return True
 
 	def check_checks(self, board: 'Board') -> bool:
-		# Make the move regardless of whether it can be made or not
+		"""Check the validity of the move, regarding chess checks."""
+		to_square_piece = board.get_piece_occupying_square(self.to)
+		if to_square_piece is not None:
+			# if there is a piece on the TO square, capture it
+			del board.piece_dict[self.to]
+
+		# Move the piece regardless of whether it is valid or not
 		original_square = self.moving_piece.square
 		self.moving_piece.square = self.to
-
 		del board.piece_dict[original_square]
 		board.piece_dict[self.moving_piece.square] = self.moving_piece
 
 		# Get a list of all attacked squares by the opposite color
+		# except the piece on the TO square
 		attacked_squares = set()
-
 		for piece in board.pieces:
-			if piece.color != self.moving_piece.color:
+			if piece.color != self.moving_piece.color and piece != to_square_piece:
 				piece_moves = piece.get_attacked_squares(board)
-
 				attacked_squares.update(piece_moves)
 
-		# Get the king of the moving color's king.
-		king = board.get_pieces(King, self.moving_piece.color)[0]
-
-		# Return false if the king can be captured
+		# Move is invalid if the moving color's king can be captured
+		king = board.get_king(self.moving_piece.color)
 		check_validity = not king.square in attacked_squares
 
 		# Undo the move.
 		del board.piece_dict[self.moving_piece.square]
 		self.moving_piece.square = original_square
 		board.piece_dict[self.moving_piece.square] = self.moving_piece
+		board.piece_dict[self.to] = to_square_piece
 
 		return check_validity
 
@@ -206,8 +209,7 @@ class Move:
 	def make_move(self, board: 'Board', possible_squares: List['Square']) -> None:
 		"""Make the move on the board, if it is valid."""
 		# TODO: Return notation for the move.
-		# TODO: Cannot pass through squares that would put the king in check.
-		# TODO: While checking for checks on the king, check if the attacking piece can be captured
+		# TODO: Implement checkmate and stalemate
 
 		if self.is_valid(board.move_turn, possible_squares) and self.check_checks(board):
 			# Check if a piece was captured
