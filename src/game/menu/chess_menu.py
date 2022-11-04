@@ -9,9 +9,9 @@ from fen_parser.board_parser import BoardParser
 from .menu_widget import MenuWidget
 from utils import point_in_rect
 
-# remove this later, move colors into its own module
-import pygame as pg
+import pygame as pg  # remove this later, move colors into its own module
 
+import tkinter.filedialog as fd
 import tkinter as tk
 
 
@@ -21,7 +21,7 @@ class ChessMenu(Renderable):
 	def __init__(self):
 		"""Initialize the widgets on the menu."""
 		self.board_fen_widget = MenuWidget(
-			30, 100, 'fen_widget', 'GET FEN', 
+			30, 100, 'fen_widget', 'SAVE FEN', 
 			pg.Color('black'), pg.Color('white'), pg.Color('black')
 			)
 
@@ -39,8 +39,9 @@ class ChessMenu(Renderable):
 		"""Initialize the list that contains every widget on the menu."""
 		widgets = []
 		for key in vars(self).keys():
-			if '_widget' in key:
-				widgets.append(getattr(self, key))
+			element = getattr(self, key)
+			if type(element) == MenuWidget:
+				widgets.append(element)
 
 		return widgets
 
@@ -58,7 +59,18 @@ class ChessMenuHandler:
 
 	def handle(self, widget: MenuWidget):
 		"""Handle the pressed widget. Note: This method will never be passed 'None'"""
-		# TODO: Highlight pressed widget
 		if widget.id == 'fen_widget':
+			# Get the FEN string for the position on the board
 			board_fen = self.board_parser.parse()
-			print(board_fen)
+
+			# Create tkinter window on our own so we can hide and close it
+			root = tk.Tk()
+			root.withdraw()
+
+			save_file = fd.asksaveasfile(defaultextension='.fen')
+			if save_file is not None:
+				save_file.write(board_fen)
+				save_file.close()
+
+			# Quit tkinter
+			root.destroy()
