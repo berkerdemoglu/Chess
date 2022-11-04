@@ -14,6 +14,7 @@ from chess import Board
 from fen_parser import validate_fen
 
 import ctypes  # for dpi awareness
+from sys import exit as sysexit
 
 
 # Constants
@@ -87,7 +88,7 @@ class LauncherWindow(tk.Tk, WidgetMixin):
 
 
 class Launcher:
-	# TODO: Don't open the application if launcher GUI is closed by hand
+	"""The launcher that opens before the chess app to input settings."""
 
 	def __init__(self):
 		"""Initialize the launcher's main window."""
@@ -95,6 +96,10 @@ class Launcher:
 		self.launcher_dict = {}
 
 		self.root = LauncherWindow(self.launcher_dict)
+
+		# Add protocol handler so that the app doesn't start 
+		# when the launcher is closed manually
+		self.root.protocol("WM_DELETE_WINDOW", lambda: self.close_launcher())
 
 	def draw_widgets(self):
 		"""Draw the widgets in the launcher GUI."""
@@ -107,3 +112,8 @@ class Launcher:
 
 	def get(self, attribute):
 		return self.launcher_dict[attribute]
+
+	def close_launcher(self):
+		"""Close the launcher by hand and don't start the chess app."""
+		self.root.destroy()
+		sysexit(1)
