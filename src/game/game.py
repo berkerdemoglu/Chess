@@ -9,21 +9,22 @@ from sys import exit as sysexit
 import pygame as pg
 
 # My utilities
+from settings import ASSETS_DIR
+
 from graphics import Display
 from graphics import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
 	BACKGROUND_COLOR
 )
 from utils import (
-		get_dragged_piece, 
-		get_release_square, 
-		point_in_rect
-	)
+	get_dragged_piece, 
+	get_release_square, 
+	point_in_rect
+)
 
 # Chess imports
-from chess import Board, Move, Square
+from chess import Board, Move, Square, PieceCreator
 from fen_parser.board_parser import BoardParser
-
 from .menu import ChessMenu, ChessMenuHandler
 
 
@@ -35,7 +36,8 @@ class ChessGame(Display):
 		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, BACKGROUND_COLOR)
 
 		# Board
-		self.board: Board = Board(self.screen, fen_str)
+		self.piece_creator = PieceCreator(ASSETS_DIR / 'pieces.png')
+		self.board: Board = Board(self.piece_creator, self.screen, fen_str)
 		self.board_parser: BoardParser = BoardParser(self.board)
 
 		# Chess screen menu
@@ -56,7 +58,7 @@ class ChessGame(Display):
 			occupying_piece = self.board.get_piece_occupying_square(to_square)
 
 			# Create a move and make it.
-			move = Move(to_square, self.dragged_piece, occupying_piece)
+			move = Move(to_square, self.dragged_piece, occupying_piece, self.piece_creator)
 			move.make_move(self.board, self.possible_squares)
 		else:
 			self.dragged_piece.square.unhighlight()

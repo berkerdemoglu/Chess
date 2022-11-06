@@ -7,7 +7,7 @@ from graphics import Renderable
 from utils import point_in_rect
 
 # Chess stuff
-from .piece import BasePiece
+from .piece import BasePiece, PieceCreator
 from .square import Square
 from fen_parser.fen_parser import FENParser
 from .chess_constants import ChessColor
@@ -33,7 +33,9 @@ class Board:
 	"""Represents the chessboard."""
 	DEFAULT_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 	
-	def __init__(self, surface: pg.Surface, fen_str: str):
+	def __init__(
+			self, piece_creator: PieceCreator, surface: pg.Surface, fen_str: str
+		):
 		"""Initialize the chessboard."""
 		self.surface = surface
 		self.board_coordinates: List[BoardCoordinate]  # visual coordinates around the board
@@ -49,18 +51,18 @@ class Board:
 		self.black_king: King
 
 		# Set up the chessboard
-		self._create_board(fen_str)
+		self._create_board(fen_str, piece_creator)
 
 		# Define borders of the board
 		self.border_rect = self._define_borders()
 
-	def _create_board(self, fen_str: str):
+	def _create_board(self, fen_str: str, piece_creator: PieceCreator):
 		"""Create the chessboard with squares, pieces and coordinates around the board."""
 		# Squares
 		self._setup_squares()
 
 		# Pieces
-		self._setup_pieces(fen_str)
+		self._setup_pieces(fen_str, piece_creator)
 		self.update_piece_dict()
 
 		# Coordinates around the board (for graphics/GUI)
@@ -83,9 +85,9 @@ class Board:
 				square = Square(color, pos, index, self.surface)
 				self.squares.append(square)
 
-	def _setup_pieces(self, fen_str: str) -> None:
+	def _setup_pieces(self, fen_str: str, piece_creator: PieceCreator) -> None:
 		"""Initialize the pieces on the chessboard."""
-		fen_parser = FENParser(self.surface, fen_str, self)
+		fen_parser = FENParser(self.surface, fen_str, self, piece_creator)
 		fen_parser.parse()
 
 	def _setup_coordinates(self) -> List[BoardCoordinate]:

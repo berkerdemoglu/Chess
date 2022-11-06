@@ -4,9 +4,10 @@ from typing import Callable, Sequence, Tuple, List, TYPE_CHECKING
 if TYPE_CHECKING:
 	from .board import Board
 	from .square import Square
+	from .piece import PieceCreator
 
 # Sound-related imports
-from settings import SOUND_DIR
+from settings import ASSETS_DIR
 import pygame as pg
 
 # Import tkinter for pawn promotion GUI
@@ -68,9 +69,12 @@ class PromotionDialog(tk.Tk):
 
 
 class Move:
-	INVALID_MOVE_SOUND = pg.mixer.Sound(SOUND_DIR / 'invalid_move.wav')
+	INVALID_MOVE_SOUND = pg.mixer.Sound(ASSETS_DIR / 'invalid_move.wav')
 
-	def __init__(self, to: 'Square', moving_piece: 'BasePiece', occupying_piece: 'BasePiece'):
+	def __init__(
+			self, to: 'Square', moving_piece: 'BasePiece', 
+			occupying_piece: 'BasePiece', piece_creator: 'PieceCreator'
+		):
 		"""
 		Initialize a move with a the square to move to, the moving
 		piece and the occupant of the square the piece is moving to.
@@ -78,6 +82,8 @@ class Move:
 		self.to = to
 		self.moving_piece = moving_piece
 		self.occupying_piece = occupying_piece
+
+		self.piece_creator = piece_creator
 
 	# Checks (Not as in chess checks :))
 	def _check_first_move_piece(self, piece_type):
@@ -200,9 +206,11 @@ class Move:
 			board.pieces.remove(self.moving_piece)
 
 			# Change the moving piece from pawn to the promotion of choice
+			# TODO: Replace eval with something better
 			PromotionClass = eval(dialog.promotion_choice)
-			self.moving_piece = PromotionClass(
-					self.moving_piece.color, self.moving_piece.square, board.surface
+			self.moving_piece = self.piece_creator.create_piece(
+					PromotionClass, self.moving_piece.color,
+					self.moving_piece.square, board.surface
 				)
 			board.pieces.append(self.moving_piece)
 
@@ -210,6 +218,7 @@ class Move:
 		"""Make the move on the board, if it is valid."""
 		# TODO: Return notation for the move.
 		# TODO: Implement checkmate and stalemate
+		# TODO: Add promotion cancelling
 
 		if self.is_valid(board.move_turn, possible_squares) and self.check_checks(board):
 			# Check if a piece was captured

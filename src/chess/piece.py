@@ -1,6 +1,7 @@
 # Type annotations
-from typing import List, Sequence, Callable, Tuple, TYPE_CHECKING
+from typing import List, Sequence, Callable, Tuple, Union, TYPE_CHECKING
 if TYPE_CHECKING:
+	from pathlib import Path
 	from .board import Board
 
 # Built-in utilities
@@ -10,9 +11,8 @@ from functools import wraps
 # Pygame
 import pygame as pg
 
-# Settings and graphics imports
-from settings import PIECE_DIR
-from graphics import Renderable
+# Graphics imports
+from graphics import Renderable, Spritesheet, PIECE_SIZE_X, PIECE_SIZE_Y
 
 # Chess imports
 from .square import Square
@@ -23,7 +23,7 @@ from .chess_constants import ChessColor, Direction
 __all__ = [
 	'BasePiece', 'FirstMovePiece', 
 	'Pawn', 'Bishop', 'Knight', 
-	'Rook', 'Queen', 'King'
+	'Rook', 'Queen', 'King', 'PieceCreator'
 ]
 
 
@@ -32,19 +32,39 @@ __all__ = [
 #############################
 
 
-# TODO: Re-implement this functionality
-def highlight_squares(func: Callable):
-	"""Highlights a list of squares."""
+class PieceCreator:
+	"""Creates piece for the game. Handles graphics for them as well."""
+	# TODO: Maybe turn this into a 'static' (like java) class??
 
-	@wraps(func)
-	def wrapper(self, *args, **kwargs):
-		possible_moves = func(self, *args, **kwargs)
-		for square in possible_moves:
-			square.highlight(Square.VALID_MOVE_HIGHLIGHT)
+	def __init__(self, filename: Union[str, 'Path']):
+		"""Init the creator with the piece spritesheet and the screen."""
+		self.spritesheet = Spritesheet(filename)
 
-		return possible_moves
+	def create_piece(
+			self, piece_class, color: ChessColor, 
+			square: Square, screen: pg.Surface
+		):
+		"""TODO: Add typing for piece_class and docstring"""
+		# Init the piece with chess logic
+		piece = piece_class(color, square)
 
-	return wrapper
+		# Get the rect that covers the area for the sprite.
+		y_offset = 0
+		if color == ChessColor.DARK:
+			y_offset = 64
+
+		image_position_rect = pg.Rect(
+				piece_class.PIECE_X_OFFSET, y_offset, 
+				PIECE_SIZE_X, PIECE_SIZE_Y
+			)
+
+		# Get image for piece
+		image = self.spritesheet.get_image_at(image_position_rect)
+
+		# Initialize graphics for the piece
+		piece.init_graphics(image, screen)
+
+		return piece
 
 
 def remove_square_if_in_possible_moves(
@@ -61,21 +81,25 @@ def remove_square_if_in_possible_moves(
 
 class RenderablePiece(Renderable):
 	"""A class that handles the graphics of a chess piece."""
+	PIECE_X_OFFSET: int  # this must be re-defined by every child class
 
 	def __init__(self, color: ChessColor, square: Square):
 		"""Initialize a piece with a color, square, and image and rect."""
 		self.color = color
 		self.square = square
 
-		# Load image and get its rect
-		# P.S: the notation attribute is implemented later on, ignore this error
-		imagename = f"{'w' if self.color == ChessColor.LIGHT else 'b'}" \
-			f"{self.__class__.notation.lower()}.png"
-		self.image = pg.image.load(PIECE_DIR / imagename).convert_alpha()
-
-		self.rect = self.image.get_rect()
+		# Load image and get its rect - this is done in the create_piece function
+		self.image: pg.Surface
+		self.rect: pg.Rect
 
 	# Graphics methods
+	def init_graphics(self, image: pg.Surface, screen: pg.Surface):
+		"""TODO: docstring here"""
+		self.image = image
+		self.rect = self.image.get_rect()
+
+		self.center_in_square(screen)
+
 	def render(self, surface: pg.Surface) -> None:
 		"""Renders the piece to the screen."""
 		surface.blit(self.image, self.rect)
@@ -119,12 +143,6 @@ class BasePiece(RenderablePiece):
 	# Class attributes
 	points: int  # how much the piece is worth
 	notation: str  # how the piece is represented in chess notation
-
-	def __init__(self, color: ChessColor, square: Square, surface: pg.Surface):
-		"""Center the piece on initialization."""
-		super().__init__(color, square)
-
-		self.center_in_square(surface)
 
 	# Chess-related methods
 	def move_piece(self, move_square: Square, surface: pg.Surface) -> None:
@@ -243,6 +261,7 @@ class FirstMovePiece(BasePiece):
 
 class Pawn(FirstMovePiece):
 	"""Represents a pawn on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*5
 	points = 1
 	notation = 'P'  # used for graphics
 	PROMOTION_CHOICES = ['Queen', 'Rook', 'Bishop', 'Knight']
@@ -312,6 +331,7 @@ class Pawn(FirstMovePiece):
 
 class Rook(FirstMovePiece):
 	"""Represents a rook on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*2
 	points = 5
 	notation = 'R'
 
@@ -392,6 +412,7 @@ class Rook(FirstMovePiece):
 
 class King(FirstMovePiece):
 	"""Represents a king on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*0
 	notation = 'K'
 
 	def __init__(self, *args, **kwargs):
@@ -533,6 +554,7 @@ class King(FirstMovePiece):
 
 class Knight(BasePiece):
 	"""Represents a knight on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*4
 	points = 3
 	notation = 'N'
 
@@ -564,6 +586,7 @@ class Knight(BasePiece):
 
 class Bishop(BasePiece):
 	"""Represents a bishop on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*3
 	points = 3
 	notation = 'B'
 
@@ -645,6 +668,7 @@ class Bishop(BasePiece):
 
 class Queen(Bishop, Rook):
 	"""Represents a queen on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*1
 	points = 9
 	notation = 'Q'
 
