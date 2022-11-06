@@ -12,7 +12,7 @@ import pygame as pg
 from graphics import Display
 from graphics import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
-	BACKGROUND_COLOR, FPS
+	BACKGROUND_COLOR
 )
 from utils import (
 		get_dragged_piece, 
@@ -32,7 +32,7 @@ class ChessGame(Display):
 
 	def __init__(self, fen_str: str = Board.DEFAULT_POSITION_FEN):
 		"""Initialize pygame, the screen and the board."""
-		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, FPS, BACKGROUND_COLOR)
+		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, BACKGROUND_COLOR)
 
 		# Board
 		self.board: Board = Board(self.screen, fen_str)
