@@ -1,14 +1,12 @@
-# TODO: Add comments to this module (move.py)
 # Type annotations
 from typing import Callable, Sequence, Tuple, List, TYPE_CHECKING
 if TYPE_CHECKING:
 	from .board import Board
 	from .square import Square
-	from .piece import PieceCreator
 
 # Sound-related imports
-from settings import ASSETS_DIR
 import pygame as pg
+from settings import ASSETS_DIR
 
 # Import tkinter for pawn promotion GUI
 import tkinter as tk
@@ -28,6 +26,7 @@ pg.mixer.init()
 ######### PROMOTION GUI #########
 #################################
 def create_choice_button(root: tk.Tk, choice: str, promotion_cmd: Callable) -> tk.Button:
+	"""Create a button for the promotion dialog."""
 	cmd = lambda: promotion_cmd(choice)
 	button = tk.Button(
 			root, text=choice, padx=10, pady=10, command=cmd
@@ -36,9 +35,11 @@ def create_choice_button(root: tk.Tk, choice: str, promotion_cmd: Callable) -> t
 
 
 class PromotionDialog(tk.Tk):
+	"""Represents the dialog that opens when a pawn is being promoted."""
+
 	def __init__(self, choices: Sequence[str]):
 		super().__init__()
-		self.title('Choose piece to promote to')
+		self.title('Promote')
 
 		self.buttons = []
 		for choice in choices:
@@ -50,15 +51,18 @@ class PromotionDialog(tk.Tk):
 		self.promotion_choice = None
 
 	def start_dialog(self):
+		"""Start the promotion dialog."""
 		self.draw_widgets()
 		self.mainloop()
 
 	def draw_widgets(self):
+		"""Draw the buttons on the dialog."""
 		for i in range(len(self.buttons)):
 			button = self.buttons[i]
 			button.grid(row=0, column=i)
 
 	def _choose_promotion(self, user_choice: str):
+		"""Get the promotion that the user chose and close the dialog."""
 		self.promotion_choice = user_choice
 		self.destroy()
 
@@ -69,11 +73,12 @@ class PromotionDialog(tk.Tk):
 
 
 class Move:
+	"""Represents a move on the chessboard."""
 	INVALID_MOVE_SOUND = pg.mixer.Sound(ASSETS_DIR / 'invalid_move.wav')
 
 	def __init__(
 			self, to: 'Square', moving_piece: 'BasePiece', 
-			occupying_piece: 'BasePiece', piece_creator: 'PieceCreator'
+			occupying_piece: 'BasePiece'
 		):
 		"""
 		Initialize a move with a the square to move to, the moving
@@ -83,16 +88,18 @@ class Move:
 		self.moving_piece = moving_piece
 		self.occupying_piece = occupying_piece
 
-		self.piece_creator = piece_creator
-
 	# Checks (Not as in chess checks :))
-	def _check_first_move_piece(self, piece_type):
+	def _update_has_moved(self, piece_type):
+		"""
+		Check if the moving piece has special first moves and if so,
+		set the has_moved flag to True, to stop generating those moves.
+		"""
 		if issubclass(piece_type, FirstMovePiece):
 			self.moving_piece.has_moved = True
 
 	def _check_capture(self, pieces_list: List['BasePiece']) -> None:
-		"""Check if a piece is being captured."""
-		if self.moving_piece != self.occupying_piece is not None:
+		"""Remove the piece on the TO square, if it is being captured."""
+		if self.occupying_piece is not None:
 			pieces_list.remove(self.occupying_piece)
 
 	def _check_move_turn(self, move_turn: 'ChessColor') -> bool:
@@ -103,7 +110,7 @@ class Move:
 		return True
 
 	def _check_same_color(self) -> bool:
-		"""Check if the moving piece and the occupying of the move square is the same color."""
+		"""Check if the moving piece and the occupant of the TO square are the same color."""
 		if self.occupying_piece is not None:
 			if self.moving_piece.color == self.occupying_piece.color:
 				return False
@@ -111,7 +118,7 @@ class Move:
 		return True
 
 	def is_valid(self, move_turn: 'ChessColor', possible_squares: List['Square']) -> bool:
-		"""Check the validity of the move."""
+		"""Check the validity of the move, regarding game logic."""
 		if not self._check_move_turn(move_turn):
 			# Cannot move if its not your turn
 			return False
@@ -126,10 +133,9 @@ class Move:
 
 		return True
 
-	def check_checks(self, board: 'Board') -> bool:
+	def _check_checks(self, board: 'Board') -> bool:
 		"""Check the validity of the move, regarding chess checks."""
-		to_square_piece = board.get_piece_occupying_square(self.to)
-		if to_square_piece is not None:
+		if self.occupying_piece is not None:
 			# if there is a piece on the TO square, capture it
 			del board.piece_dict[self.to]
 
@@ -143,7 +149,7 @@ class Move:
 		# except the piece on the TO square
 		attacked_squares = set()
 		for piece in board.pieces:
-			if piece.color != self.moving_piece.color and piece != to_square_piece:
+			if piece.color != self.moving_piece.color and piece != self.occupying_piece:
 				piece_moves = piece.get_attacked_squares(board)
 				attacked_squares.update(piece_moves)
 
@@ -155,12 +161,12 @@ class Move:
 		del board.piece_dict[self.moving_piece.square]
 		self.moving_piece.square = original_square
 		board.piece_dict[self.moving_piece.square] = self.moving_piece
-		board.piece_dict[self.to] = to_square_piece
+		board.piece_dict[self.to] = self.occupying_piece
 
 		return check_validity
 
-	def check_castling(self, board: 'Board') -> None:
-		"""Check if the king is castling."""
+	def _check_castling(self, board: 'Board') -> None:
+		"""Check if the king is castling and if so, move the rook."""
 		# TODO: Make sure the king is not passing through attacked squares
 		index_difference = self._get_index_difference()
 		index = self.moving_piece.square.index
@@ -183,7 +189,7 @@ class Move:
 
 	@staticmethod
 	def _move_castling_rook(
-		board: 'Board', index: int, increment: int, multiply_by: int
+			board: 'Board', index: int, increment: int, multiply_by: int
 		) -> None:
 		"""Move the rook the king is castling with."""
 		# Get the rook
@@ -191,9 +197,11 @@ class Move:
 		rook = board.get_piece_occupying_square(board.squares[rook_square_index])
 
 		# Move the rook
-		rook.move_piece(board.squares[index + increment], board.surface)
+		rook.move_piece(board.squares[index + increment], board.screen)
 
 	def _check_promotion(self, board: 'Board') -> None:
+		"""Promote the pawn, if it is on the last row."""
+		# TODO: Add promotion cancelling
 		promotion_row = 0 if self.moving_piece.color == ChessColor.LIGHT else 7
 
 		if self.moving_piece.irow(self._get_index_difference()) == promotion_row:
@@ -208,9 +216,9 @@ class Move:
 			# Change the moving piece from pawn to the promotion of choice
 			# TODO: Replace eval with something better
 			PromotionClass = eval(dialog.promotion_choice)
-			self.moving_piece = self.piece_creator.create_piece(
+			self.moving_piece = PieceCreator.create_piece(
 					PromotionClass, self.moving_piece.color,
-					self.moving_piece.square, board.surface
+					self.moving_piece.square, board.screen
 				)
 			board.pieces.append(self.moving_piece)
 
@@ -218,22 +226,21 @@ class Move:
 		"""Make the move on the board, if it is valid."""
 		# TODO: Return notation for the move.
 		# TODO: Implement checkmate and stalemate
-		# TODO: Add promotion cancelling
 
-		if self.is_valid(board.move_turn, possible_squares) and self.check_checks(board):
+		if self.is_valid(board.move_turn, possible_squares) and self._check_checks(board):
 			# Check if a piece was captured
 			self._check_capture(board.pieces)
 
 			piece_type = self.moving_piece.__class__
 			if piece_type == King:
 				# Check if the king is castling
-				self.check_castling(board)
+				self._check_castling(board)
 			elif piece_type == Pawn:
 				# Check if a pawn is being promoted
 				self._check_promotion(board)
 
 			# Check if the moving piece is of type 'FirstMovePiece'.
-			self._check_first_move_piece(piece_type)
+			self._update_has_moved(piece_type)
 
 			# Unhighlight the previous square
 			self.moving_piece.square.unhighlight()
@@ -254,7 +261,7 @@ class Move:
 			self.moving_piece.square.unhighlight()
 
 		# Center the piece in the square so that it looks nice
-		self.moving_piece.center_in_square(board.surface)
+		self.moving_piece.center_in_square(board.screen)
 
 		# Update the piece dict of the board.
 		board.update_piece_dict()

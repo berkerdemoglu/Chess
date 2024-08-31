@@ -9,5 +9,5 @@ related to chess and chess functionality.
 from .square import Square
 from .board import Board
 from .move import Move
-from .chess_constants import ChessColor
+from .chess_constants import ChessColor, DEFAULT_POSITION_FEN
 from .piece import PieceCreator

@@ -1,6 +1,9 @@
 from enum import Enum
 
 
+DEFAULT_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+
+
 class ChessColor(Enum):
 	"""The color of a square/piece."""
 	DARK = -1

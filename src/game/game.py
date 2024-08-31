@@ -23,7 +23,7 @@ from utils import (
 )
 
 # Chess imports
-from chess import Board, Move, Square, PieceCreator
+from chess import Board, Move, Square, DEFAULT_POSITION_FEN
 from fen_parser.board_parser import BoardParser
 from .menu import ChessMenu, ChessMenuHandler
 
@@ -31,13 +31,12 @@ from .menu import ChessMenu, ChessMenuHandler
 class ChessGame(Display):
 	"""The class that represents the game."""
 
-	def __init__(self, fen_str: str = Board.DEFAULT_POSITION_FEN):
+	def __init__(self, fen_str: str = DEFAULT_POSITION_FEN):
 		"""Initialize pygame, the screen and the board."""
 		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, BACKGROUND_COLOR)
 
 		# Board
-		self.piece_creator = PieceCreator(ASSETS_DIR / 'pieces.png')
-		self.board: Board = Board(self.piece_creator, self.screen, fen_str)
+		self.board: Board = Board(self.screen, fen_str)
 		self.board_parser: BoardParser = BoardParser(self.board)
 
 		# Chess screen menu
@@ -45,7 +44,6 @@ class ChessGame(Display):
 		self.chess_menu_handler: ChessMenuHandler = ChessMenuHandler(self.board_parser)
 
 		# Flags
-		# TODO: Add MoveHandler
 		self.dragged_piece: Union['BasePiece', None] = None
 		self.possible_squares: Union[List, None] = None
 
@@ -58,7 +56,7 @@ class ChessGame(Display):
 			occupying_piece = self.board.get_piece_occupying_square(to_square)
 
 			# Create a move and make it.
-			move = Move(to_square, self.dragged_piece, occupying_piece, self.piece_creator)
+			move = Move(to_square, self.dragged_piece, occupying_piece)
 			move.make_move(self.board, self.possible_squares)
 		else:
 			self.dragged_piece.square.unhighlight()

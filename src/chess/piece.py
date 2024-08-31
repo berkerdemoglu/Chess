@@ -1,7 +1,6 @@
 # Type annotations
 from typing import List, Sequence, Callable, Tuple, Union, TYPE_CHECKING
 if TYPE_CHECKING:
-	from pathlib import Path
 	from .board import Board
 
 # Built-in utilities
@@ -11,8 +10,9 @@ from functools import wraps
 # Pygame
 import pygame as pg
 
-# Graphics imports
+# Graphics and settings imports
 from graphics import Renderable, Spritesheet, PIECE_SIZE_X, PIECE_SIZE_Y
+from settings import ASSETS_DIR
 
 # Chess imports
 from .square import Square
@@ -34,14 +34,11 @@ __all__ = [
 
 class PieceCreator:
 	"""Creates piece for the game. Handles graphics for them as well."""
-	# TODO: Maybe turn this into a 'static' (like java) class??
+	spritesheet = Spritesheet(ASSETS_DIR / 'pieces.png')
 
-	def __init__(self, filename: Union[str, 'Path']):
-		"""Init the creator with the piece spritesheet and the screen."""
-		self.spritesheet = Spritesheet(filename)
-
+	@classmethod
 	def create_piece(
-			self, piece_class, color: ChessColor, 
+			cls, piece_class, color: ChessColor, 
 			square: Square, screen: pg.Surface
 		):
 		"""TODO: Add typing for piece_class and docstring"""
@@ -59,7 +56,7 @@ class PieceCreator:
 			)
 
 		# Get image for piece
-		image = self.spritesheet.get_image_at(image_position_rect)
+		image = cls.spritesheet.get_image_at(image_position_rect)
 
 		# Initialize graphics for the piece
 		piece.init_graphics(image, screen)
@@ -94,7 +91,7 @@ class RenderablePiece(Renderable):
 
 	# Graphics methods
 	def init_graphics(self, image: pg.Surface, screen: pg.Surface):
-		"""TODO: docstring here"""
+		"""Initialize graphics-related variables and center the piece."""
 		self.image = image
 		self.rect = self.image.get_rect()
 
@@ -105,7 +102,7 @@ class RenderablePiece(Renderable):
 		surface.blit(self.image, self.rect)
 
 	def center_in_square(self, surface: pg.Surface):
-		"""Center the piece's rect."""
+		"""Center the piece in its square."""
 		square_pos = self.square.get_pos(surface)
 		self.rect.centerx = square_pos[0] + Square.SQUARE_SIZE // 2
 		self.rect.centery = square_pos[1] + Square.SQUARE_SIZE // 2
@@ -117,7 +114,7 @@ class RenderablePiece(Renderable):
 
 	# String methods
 	def __str__(self):
-		"""String representation of a piece."""
+		"""String representation of the piece."""
 		colorname = 'Light' if self.color == ChessColor.LIGHT else 'Dark'
 		return f'{colorname} {self.__class__} on {self.square.coordinates}'
 
@@ -180,6 +177,7 @@ class BasePiece(RenderablePiece):
 		horizontal_increment = 0
 		vertical_increment = 0
 
+		# TODO: move these class variables to chess_constants.py
 		for direction in directions:
 			if direction in kls.HORIZONTAL_DIRECTIONS:
 				horizontal_increment += direction.value * self.color.value
@@ -229,12 +227,9 @@ class BasePiece(RenderablePiece):
 		Get the move directions as in square differences 
 		in the order; Forward, back, right, left.
 		"""
-		f = Direction.FORWARD.value * self.color.value
-		b = Direction.BACK.value * self.color.value
-		r = Direction.RIGHT.value * self.color.value
-		l = Direction.LEFT.value * self.color.value
+		number_directions = (d.value*self.color.value for d in self.get_directions())
 
-		return f, b, r, l
+		return number_directions
 
 	def irow(self, inc: int = 0) -> int:
 		"""Return the row of the piece as an integer between 0 and 7."""
@@ -274,7 +269,7 @@ class Pawn(FirstMovePiece):
 		i = self.square.index
 
 		# Get the forward direction value
-		forward: int = Direction.FORWARD.value * self.color.value
+		forward: int = Direction.FORWARD.value*self.color.value
 
 		# First of all, check if the pawn can move forward.
 		if self._check_can_move_vertical(forward):
@@ -429,7 +424,7 @@ class King(FirstMovePiece):
 		else:
 			self.fen_kingside_right = False
 
-		if 'q'in castling_rights.lower():
+		if 'q' in castling_rights.lower():
 			self.fen_queenside_right = True
 		else:
 			self.fen_queenside_right = False

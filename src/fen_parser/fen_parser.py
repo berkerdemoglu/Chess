@@ -2,13 +2,13 @@
 from typing import TYPE_CHECKING, NoReturn, Union
 if TYPE_CHECKING:
 	from pygame import Surface
-	from chess import Square, Board, PieceCreator
+	from chess import Square, Board
 
 from utils import sort_word_by_case
 
 # Import it from the module to avoid a circular import
 from chess.chess_constants import ChessColor
-from chess.piece import BasePiece, King
+from chess.piece import BasePiece, King, PieceCreator
 
 from .fen_constants import FEN_DICT
 from .base_parser import BaseParser
@@ -17,14 +17,10 @@ from .base_parser import BaseParser
 class FENParser(BaseParser):
 	"""A class that parses a FEN string and converts it into pieces."""
 
-	def __init__(
-			self, screen: 'Surface', fen: str, 
-			board: 'Board', piece_creator: 'PieceCreator'
-		):
+	def __init__(self, screen: 'Surface', fen: str, board: 'Board'):
 		self.screen = screen
 
 		self.board = board
-		self.piece_creator = piece_creator
 
 		self.fen = fen.split(' ')
 		self.ranks = self.fen[0].split('/')
@@ -85,7 +81,7 @@ class FENParser(BaseParser):
 		except KeyError:
 			raise ValueError(f'Invalid input: {piece_letter}')
 		else:
-			piece = self.piece_creator.create_piece(
+			piece = PieceCreator.create_piece(
 					piece_class, piece_color, piece_square, self.screen
 				)
 
