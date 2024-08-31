@@ -9,6 +9,7 @@ from .fen_constants import BOARD_DICT
 
 
 class BoardParser(BaseParser):
+	"""TODO"""
 
 	def __init__(self, board: 'Board'):
 		super().__init__(board)
