@@ -8,17 +8,18 @@ import tkinter as tk
 from .widget_mixin import WidgetMixin
 from .launcher_settings import LAUNCHER_SETTINGS as LS
 
-from chess import Board  # for default FEN
+from chess import DEFAULT_POSITION_FEN
 
 
 class FENEntry(tk.Entry, WidgetMixin):
 
 	def __init__(self, frame: tk.LabelFrame):
+		"""Initialize the FEN text entry area with the default FEN."""
 		super(FENEntry, self).__init__(frame, width=100, borderwidth=10)
 		WidgetMixin.__init__(self, frame)
 
 		# Insert the default FEN
-		self.insert(tk.END, Board.DEFAULT_POSITION_FEN)
+		self.insert(tk.END, DEFAULT_POSITION_FEN)
 
 	def draw_widget(self):
 		self.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
@@ -76,6 +77,7 @@ class FENFrame(tk.LabelFrame, WidgetMixin):
 	"""
 
 	def __init__(self, root: 'LauncherWindow'):
+		"""Initialize the frame with its widgets."""
 		# Tkinter
 		super(FENFrame, self).__init__(
 				root, text='Starting Position FEN', padx=10, pady=10, font=LS.FONT,
@@ -99,13 +101,14 @@ class FENFrame(tk.LabelFrame, WidgetMixin):
 		self.fen_clear_button.draw_widget()
 
 	def get_fen(self) -> str:
+		"""Get the text (FEN string) in the text entry area."""
 		return self.fen_entry.get_fen()
 
 	# Commands
 	def cmd_reset_fen(self) -> None:
 		"""Resets the entry to the default FEN."""
 		self.fen_entry.clear_fen()
-		self.fen_entry.set_fen(Board.DEFAULT_POSITION_FEN)
+		self.fen_entry.set_fen(DEFAULT_POSITION_FEN)
 
 	def cmd_clear_fen(self) -> None:
 		"""Deletes any text written in the FEN entry area."""

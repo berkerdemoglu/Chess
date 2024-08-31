@@ -8,7 +8,7 @@ from utils import sort_word_by_case
 
 # Import it from the module to avoid a circular import
 from chess.chess_constants import ChessColor
-from chess.piece import BasePiece, King
+from chess.piece import BasePiece, King, PieceCreator
 
 from .fen_constants import FEN_DICT
 from .base_parser import BaseParser
@@ -17,8 +17,8 @@ from .base_parser import BaseParser
 class FENParser(BaseParser):
 	"""A class that parses a FEN string and converts it into pieces."""
 
-	def __init__(self, surface: 'Surface', fen: str, board: 'Board'):
-		self.surface = surface
+	def __init__(self, screen: 'Surface', fen: str, board: 'Board'):
+		self.screen = screen
 
 		self.board = board
 
@@ -69,7 +69,9 @@ class FENParser(BaseParser):
 				self.board.pieces.append(piece)
 				square_index += 1
 
-	def _parse_piece(self, piece_letter: str, piece_square: 'Square') -> Union['BasePiece', NoReturn]:
+	def _parse_piece(
+			self, piece_letter: str, piece_square: 'Square'
+		) -> Union['BasePiece', NoReturn]:
 		"""Parse a piece."""
 		parsing_letter = piece_letter.lower()
 		piece_color = ChessColor.LIGHT if piece_letter.isupper() else ChessColor.DARK
@@ -79,8 +81,9 @@ class FENParser(BaseParser):
 		except KeyError:
 			raise ValueError(f'Invalid input: {piece_letter}')
 		else:
-			piece = piece_class(piece_color, piece_square, self.surface)
-			piece.center_in_square(self.surface)
+			piece = PieceCreator.create_piece(
+					piece_class, piece_color, piece_square, self.screen
+				)
 
 		return piece
 

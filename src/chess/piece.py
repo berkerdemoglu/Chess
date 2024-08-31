@@ -1,5 +1,5 @@
 # Type annotations
-from typing import List, Sequence, Callable, Tuple, TYPE_CHECKING
+from typing import List, Sequence, Callable, Tuple, Union, TYPE_CHECKING
 if TYPE_CHECKING:
 	from .board import Board
 
@@ -10,9 +10,9 @@ from functools import wraps
 # Pygame
 import pygame as pg
 
-# Settings and graphics imports
-from settings import PIECE_DIR
-from graphics import Renderable
+# Graphics and settings imports
+from graphics import Renderable, Spritesheet, PIECE_SIZE_X, PIECE_SIZE_Y
+from settings import ASSETS_DIR
 
 # Chess imports
 from .square import Square
@@ -23,7 +23,7 @@ from .chess_constants import ChessColor, Direction
 __all__ = [
 	'BasePiece', 'FirstMovePiece', 
 	'Pawn', 'Bishop', 'Knight', 
-	'Rook', 'Queen', 'King'
+	'Rook', 'Queen', 'King', 'PieceCreator'
 ]
 
 
@@ -32,19 +32,36 @@ __all__ = [
 #############################
 
 
-# TODO: Re-implement this functionality
-def highlight_squares(func: Callable):
-	"""Highlights a list of squares."""
+class PieceCreator:
+	"""Creates piece for the game. Handles graphics for them as well."""
+	spritesheet = Spritesheet(ASSETS_DIR / 'pieces.png')
 
-	@wraps(func)
-	def wrapper(self, *args, **kwargs):
-		possible_moves = func(self, *args, **kwargs)
-		for square in possible_moves:
-			square.highlight(Square.VALID_MOVE_HIGHLIGHT)
+	@classmethod
+	def create_piece(
+			cls, piece_class, color: ChessColor, 
+			square: Square, screen: pg.Surface
+		):
+		"""TODO: Add typing for piece_class and docstring"""
+		# Init the piece with chess logic
+		piece = piece_class(color, square)
 
-		return possible_moves
+		# Get the rect that covers the area for the sprite.
+		y_offset = 0
+		if color == ChessColor.DARK:
+			y_offset = 64
 
-	return wrapper
+		image_position_rect = pg.Rect(
+				piece_class.PIECE_X_OFFSET, y_offset, 
+				PIECE_SIZE_X, PIECE_SIZE_Y
+			)
+
+		# Get image for piece
+		image = cls.spritesheet.get_image_at(image_position_rect)
+
+		# Initialize graphics for the piece
+		piece.init_graphics(image, screen)
+
+		return piece
 
 
 def remove_square_if_in_possible_moves(
@@ -61,27 +78,31 @@ def remove_square_if_in_possible_moves(
 
 class RenderablePiece(Renderable):
 	"""A class that handles the graphics of a chess piece."""
+	PIECE_X_OFFSET: int  # this must be re-defined by every child class
 
 	def __init__(self, color: ChessColor, square: Square):
 		"""Initialize a piece with a color, square, and image and rect."""
 		self.color = color
 		self.square = square
 
-		# Load image and get its rect
-		# P.S: the notation attribute is implemented later on, ignore this error
-		imagename = f"{'w' if self.color == ChessColor.LIGHT else 'b'}" \
-			f"{self.__class__.notation.lower()}.png"
-		self.image = pg.image.load(PIECE_DIR / imagename).convert_alpha()
-
-		self.rect = self.image.get_rect()
+		# Load image and get its rect - this is done in the create_piece function
+		self.image: pg.Surface
+		self.rect: pg.Rect
 
 	# Graphics methods
+	def init_graphics(self, image: pg.Surface, screen: pg.Surface):
+		"""Initialize graphics-related variables and center the piece."""
+		self.image = image
+		self.rect = self.image.get_rect()
+
+		self.center_in_square(screen)
+
 	def render(self, surface: pg.Surface) -> None:
 		"""Renders the piece to the screen."""
 		surface.blit(self.image, self.rect)
 
 	def center_in_square(self, surface: pg.Surface):
-		"""Center the piece's rect."""
+		"""Center the piece in its square."""
 		square_pos = self.square.get_pos(surface)
 		self.rect.centerx = square_pos[0] + Square.SQUARE_SIZE // 2
 		self.rect.centery = square_pos[1] + Square.SQUARE_SIZE // 2
@@ -93,7 +114,7 @@ class RenderablePiece(Renderable):
 
 	# String methods
 	def __str__(self):
-		"""String representation of a piece."""
+		"""String representation of the piece."""
 		colorname = 'Light' if self.color == ChessColor.LIGHT else 'Dark'
 		return f'{colorname} {self.__class__} on {self.square.coordinates}'
 
@@ -119,12 +140,6 @@ class BasePiece(RenderablePiece):
 	# Class attributes
 	points: int  # how much the piece is worth
 	notation: str  # how the piece is represented in chess notation
-
-	def __init__(self, color: ChessColor, square: Square, surface: pg.Surface):
-		"""Center the piece on initialization."""
-		super().__init__(color, square)
-
-		self.center_in_square(surface)
 
 	# Chess-related methods
 	def move_piece(self, move_square: Square, surface: pg.Surface) -> None:
@@ -162,6 +177,7 @@ class BasePiece(RenderablePiece):
 		horizontal_increment = 0
 		vertical_increment = 0
 
+		# TODO: move these class variables to chess_constants.py
 		for direction in directions:
 			if direction in kls.HORIZONTAL_DIRECTIONS:
 				horizontal_increment += direction.value * self.color.value
@@ -211,12 +227,9 @@ class BasePiece(RenderablePiece):
 		Get the move directions as in square differences 
 		in the order; Forward, back, right, left.
 		"""
-		f = Direction.FORWARD.value * self.color.value
-		b = Direction.BACK.value * self.color.value
-		r = Direction.RIGHT.value * self.color.value
-		l = Direction.LEFT.value * self.color.value
+		number_directions = (d.value*self.color.value for d in self.get_directions())
 
-		return f, b, r, l
+		return number_directions
 
 	def irow(self, inc: int = 0) -> int:
 		"""Return the row of the piece as an integer between 0 and 7."""
@@ -243,6 +256,7 @@ class FirstMovePiece(BasePiece):
 
 class Pawn(FirstMovePiece):
 	"""Represents a pawn on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*5
 	points = 1
 	notation = 'P'  # used for graphics
 	PROMOTION_CHOICES = ['Queen', 'Rook', 'Bishop', 'Knight']
@@ -255,7 +269,7 @@ class Pawn(FirstMovePiece):
 		i = self.square.index
 
 		# Get the forward direction value
-		forward: int = Direction.FORWARD.value * self.color.value
+		forward: int = Direction.FORWARD.value*self.color.value
 
 		# First of all, check if the pawn can move forward.
 		if self._check_can_move_vertical(forward):
@@ -312,6 +326,7 @@ class Pawn(FirstMovePiece):
 
 class Rook(FirstMovePiece):
 	"""Represents a rook on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*2
 	points = 5
 	notation = 'R'
 
@@ -392,6 +407,7 @@ class Rook(FirstMovePiece):
 
 class King(FirstMovePiece):
 	"""Represents a king on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*0
 	notation = 'K'
 
 	def __init__(self, *args, **kwargs):
@@ -408,7 +424,7 @@ class King(FirstMovePiece):
 		else:
 			self.fen_kingside_right = False
 
-		if 'q'in castling_rights.lower():
+		if 'q' in castling_rights.lower():
 			self.fen_queenside_right = True
 		else:
 			self.fen_queenside_right = False
@@ -533,6 +549,7 @@ class King(FirstMovePiece):
 
 class Knight(BasePiece):
 	"""Represents a knight on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*4
 	points = 3
 	notation = 'N'
 
@@ -564,6 +581,7 @@ class Knight(BasePiece):
 
 class Bishop(BasePiece):
 	"""Represents a bishop on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*3
 	points = 3
 	notation = 'B'
 
@@ -645,6 +663,7 @@ class Bishop(BasePiece):
 
 class Queen(Bishop, Rook):
 	"""Represents a queen on the chessboard."""
+	PIECE_X_OFFSET = PIECE_SIZE_X*1
 	points = 9
 	notation = 'Q'
 

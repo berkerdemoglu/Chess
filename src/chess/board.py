@@ -17,25 +17,27 @@ from .move import Move
 class BoardCoordinate(Renderable):
 	"""A class that handles drawing coordinates around the board."""
 	RENDER_FONT_PROPERTIES = ('monospace', 18)
+	RENDER_FONT_COLOR = (32, 30, 31)
 	RENDER_FONT = pg.font.SysFont(*RENDER_FONT_PROPERTIES)
 
 	def __init__(self, coordinate: str, pos: Tuple[int, int]):
 		"""Initialize the coordinate and its position on the screen."""
-		self.label = BoardCoordinate.RENDER_FONT.render(coordinate, True, Square.SQUARE_FONT_COLOR)
+		self.label = BoardCoordinate.RENDER_FONT.render(
+				coordinate, True, BoardCoordinate.RENDER_FONT_COLOR
+			)
 		self.pos = pos
 
 	def render(self, surface) -> None:
-		"""Render the coordinate character."""
+		"""Render the coordinate label."""
 		surface.blit(self.label, self.pos)
 
 
 class Board:
 	"""Represents the chessboard."""
-	DEFAULT_POSITION_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 	
-	def __init__(self, surface: pg.Surface, fen_str: str):
+	def __init__(self, screen: pg.Surface, fen_str: str):
 		"""Initialize the chessboard."""
-		self.surface = surface
+		self.screen = screen
 		self.board_coordinates: List[BoardCoordinate]  # visual coordinates around the board
 
 		self.squares: List[Square] = []
@@ -67,6 +69,7 @@ class Board:
 		self.board_coordinates = self._setup_coordinates()
 
 	def update_piece_dict(self) -> None:
+		"""Update the piece dictionary to match the current position on the board."""
 		self.piece_dict.clear()
 
 		for piece in self.pieces:
@@ -77,15 +80,15 @@ class Board:
 		for rank in range(8):
 			for file in range(8):
 				color = ChessColor.LIGHT if (file + rank) % 2 == 0 else ChessColor.DARK
-				pos = (file * Square.SQUARE_SIZE, rank * Square.SQUARE_SIZE)
+				pos = (file*Square.SQUARE_SIZE, rank*Square.SQUARE_SIZE)
 				index = rank*8 + file
 
-				square = Square(color, pos, index, self.surface)
+				square = Square(color, pos, index, self.screen)
 				self.squares.append(square)
 
 	def _setup_pieces(self, fen_str: str) -> None:
 		"""Initialize the pieces on the chessboard."""
-		fen_parser = FENParser(self.surface, fen_str, self)
+		fen_parser = FENParser(self.screen, fen_str, self)
 		fen_parser.parse()
 
 	def _setup_coordinates(self) -> List[BoardCoordinate]:
@@ -95,7 +98,7 @@ class Board:
 		# a, b, c, d, e, f, g, h - horizontal, files
 		for i in range(56, 64):
 			square = self.squares[i]
-			pos = square.get_pos(self.surface)
+			pos = square.get_pos(self.screen)
 			x = pos[0] + Square.SQUARE_SIZE / 2.5
 			y = pos[1] + Square.SQUARE_SIZE*1.1
 
@@ -105,7 +108,7 @@ class Board:
 		# 1, 2, 3, 4, 5, 6, 7, 8 - vertical, ranks
 		for i in range(7, 64, 8):
 			square = self.squares[i]
-			pos = square.get_pos(self.surface)
+			pos = square.get_pos(self.screen)
 			x = pos[0] + Square.SQUARE_SIZE*1.1
 			y = pos[1] + Square.SQUARE_SIZE / 2.5
 
@@ -115,6 +118,10 @@ class Board:
 		return coordinates
 
 	def _define_borders(self) -> pg.Rect:
+		"""
+		Returns a Rect that covers the whole board, to be used in detecting whether
+		the user is clicking a widget on the menu or a piece on the chessboard.
+		"""
 		left = self.squares[0].rect.left
 		top = self.squares[0].rect.top
 		length = 8*Square.SQUARE_SIZE
@@ -153,6 +160,10 @@ class Board:
 
 		return pieces_to_return
 
+	def get_king(self, color: ChessColor):
+		"""Get the king that corresponds to the given color."""
+		return self.white_king if color == ChessColor.LIGHT else self.black_king
+
 	def get_fullmove_number(self):
 		"""Returns the full move number of the current game."""
 		return (self._move_number + 2) // 2
@@ -165,17 +176,17 @@ class Board:
 		"""Render the chessboard."""
 		# Render the squares.
 		for square in self.squares:
-			square.render(self.surface)
+			square.render(self.screen)
 
 		# Render the coordinates.
 		for coord in self.board_coordinates:
-			coord.render(self.surface)
+			coord.render(self.screen)
 
 		# Render the pieces.
 		for piece in self.pieces:
 			if piece != dragged_piece:
-				piece.render(self.surface)
+				piece.render(self.screen)
 
 		# Render the piece being dragged last so that its on top of the other pieces.
 		if dragged_piece is not None:
-			dragged_piece.render(self.surface)
+			dragged_piece.render(self.screen)

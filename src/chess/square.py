@@ -42,16 +42,7 @@ class Square(Renderable):
 	# Colors
 	DARK_SQUARE_COLOR = (140, 94, 67)
 	LIGHT_SQUARE_COLOR = (247, 237, 205)
-
-	# Highlight colors
 	CURRENT_SQUARE_HIGHLIGHT = (255, 222, 33, 0.5)
-	MOVED_SQUARE_HIGHLIGHT = (255, 0, 0, 0.5)
-	VALID_MOVE_HIGHLIGHT = (53, 116, 204, 0.5)
-
-	# Fonts
-	SQUARE_FONT_PROPERTIES = ('monospace', 14)
-	SQUARE_FONT = pg.font.SysFont(*SQUARE_FONT_PROPERTIES)
-	SQUARE_FONT_COLOR = (32, 30, 31)
 
 	def __init__(
 		self, color: ChessColor, pos: Tuple[int, int], 
@@ -61,10 +52,9 @@ class Square(Renderable):
 		self.color = color
 		self._draw_color = self._init_draw_color()
 		self._highlight_color = self._init_highlight_color()
-		self._colorname = 'LIGHT' if color == Square.LIGHT_SQUARE_COLOR else 'DARK'
+		self._colorname = 'LIGHT' if color == ChessColor.DARK else 'DARK'
 
-		self.center_x = pos[0]
-		self.center_y = pos[1]
+		self.center_x, self.center_y = pos
 		self._center = pos
 		self.rect = self._init_rect(surface)
 
@@ -78,12 +68,14 @@ class Square(Renderable):
 		return file + rank
 
 	def _init_draw_color(self) -> Tuple[int, int, int]:
+		"""Get the color tuple that corresponds to the chess color."""
 		if self.color == ChessColor.LIGHT:
 			return Square.LIGHT_SQUARE_COLOR
 		else:
 			return Square.DARK_SQUARE_COLOR
 
 	def _init_highlight_color(self) -> Tuple[int, int, int, float]:
+		"""Get the highlight color with the alpha channel."""
 		return self._draw_color[0], self._draw_color[1], self._draw_color[2], 1.0
 
 	def _init_rect(self, surface: pg.Surface) -> pg.Rect:
@@ -92,11 +84,11 @@ class Square(Renderable):
 
 		return pg.Rect(*coordinates, Square.SQUARE_SIZE, Square.SQUARE_SIZE)
 
-	def get_pos(self, surface: pg.Surface) -> Tuple[int, int]:
+	def get_pos(self, screen: pg.Surface) -> Tuple[int, int]:
 		"""Get the coordinates of the square on the screen."""
-		surface_rect = surface.get_rect()
-		x = self.center_x + surface_rect.centerx - 4*Square.SQUARE_SIZE
-		y = self.center_y + surface_rect.centery - 4*Square.SQUARE_SIZE
+		screen_rect = screen.get_rect()
+		x = self.center_x + screen_rect.centerx - 4*Square.SQUARE_SIZE
+		y = self.center_y + screen_rect.centery - 4*Square.SQUARE_SIZE
 
 		return x, y
 
@@ -107,7 +99,7 @@ class Square(Renderable):
 
 	def unhighlight(self):
 		"""Unhighlight the square."""
-		self._highlight_color = self._draw_color[0], self._draw_color[1], self._draw_color[2], 1.0
+		self._highlight_color = self._init_highlight_color()  # re-init
 
 	def get_render_color(self):
 		"""Get the square's color for graphics."""

@@ -13,7 +13,6 @@ from .fen_gui import FENFrame
 from chess import Board
 from fen_parser import validate_fen
 
-import ctypes  # for dpi awareness
 from sys import exit as sysexit
 
 
@@ -43,10 +42,6 @@ class LauncherWindow(tk.Tk, WidgetMixin):
 
 	def __init__(self, launcher_dict: Dict):
 		"""Initialize the window and its properties."""
-		# Improve resolution - we do it here because doing in it in the
-		# main() function doesn't work for some reason - TODO!
-		ctypes.windll.shcore.SetProcessDpiAwareness(1)
-
 		super(LauncherWindow, self).__init__()
 		self.launcher_dict = launcher_dict
 

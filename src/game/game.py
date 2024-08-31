@@ -9,30 +9,31 @@ from sys import exit as sysexit
 import pygame as pg
 
 # My utilities
+from settings import ASSETS_DIR
+
 from graphics import Display
 from graphics import (
 	SCREEN_PROPERTIES, WINDOW_TITLE,
-	BACKGROUND_COLOR, FPS
+	BACKGROUND_COLOR
 )
 from utils import (
-		get_dragged_piece, 
-		get_release_square, 
-		point_in_rect
-	)
+	get_dragged_piece, 
+	get_release_square, 
+	point_in_rect
+)
 
 # Chess imports
-from chess import Board, Move, Square
+from chess import Board, Move, Square, DEFAULT_POSITION_FEN
 from fen_parser.board_parser import BoardParser
-
 from .menu import ChessMenu, ChessMenuHandler
 
 
 class ChessGame(Display):
 	"""The class that represents the game."""
 
-	def __init__(self, fen_str: str = Board.DEFAULT_POSITION_FEN):
+	def __init__(self, fen_str: str = DEFAULT_POSITION_FEN):
 		"""Initialize pygame, the screen and the board."""
-		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, FPS, BACKGROUND_COLOR)
+		super().__init__(SCREEN_PROPERTIES, WINDOW_TITLE, BACKGROUND_COLOR)
 
 		# Board
 		self.board: Board = Board(self.screen, fen_str)
@@ -43,7 +44,6 @@ class ChessGame(Display):
 		self.chess_menu_handler: ChessMenuHandler = ChessMenuHandler(self.board_parser)
 
 		# Flags
-		# TODO: Add MoveHandler
 		self.dragged_piece: Union['BasePiece', None] = None
 		self.possible_squares: Union[List, None] = None
 
